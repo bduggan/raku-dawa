@@ -39,7 +39,8 @@ commands.  Type `h` to see them.  Currently, these are the commands:
 ## ABOUT THE NAME
 
 The word `dawa` can refer to either medicine or poison in Swahili.  In the
-latter sense, it would be used to describe bug spray, i.e. a debugger
+latter sense, it would be used to describe bug spray, i.e. a debugger -- but
+hopefully it'll also help be a cure for any ailments in your programs.
 
 ## SEE ALSO
 
