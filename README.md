@@ -55,3 +55,9 @@ this module.
 ## BUGS
 
 The debugger won't work if it is the last statement in a file.
+
+There are probably other bugs -- let me know and send a patch!
+
+## AUTHOR
+
+Brian Duggan (bduggan at matatu.org)
