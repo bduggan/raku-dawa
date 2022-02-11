@@ -1,0 +1,14 @@
+use Test;
+use Dawa;
+use Dawa::Debugger;
+
+plan 1;
+
+my $stopped = False;
+Dawa::Debugger.^find_method('stop-thread').wrap: { $stopped = True; }
+Dawa::Debugger.^find_method('run-repl').wrap: method {  }
+
+stop;
+
+ok $stopped, 'stopped';
+
