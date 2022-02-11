@@ -36,7 +36,7 @@ sub show-line($stack) {
   my $frame = $stack.first: { !.is-setting && !.is-hidden }
   my $file = $frame.file.subst(/' ' '(' <-[(]>+ ')' \s* $$/,'');
   my $line = $frame.line;
-  my $text = $file.IO.lines[$line];
+  my $text = $file.IO.lines[$line] // return;
   put ($line + 1).fmt("{t.bright-yellow}%3d ▶") ~ " $text" ~ t.text-reset;
 }
 
