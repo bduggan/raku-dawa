@@ -1,6 +1,6 @@
 ## NAME
 
-Dawa -- A debugger for Raku
+Dawa -- A runtime debugger for Raku programs
 
 ## SYNOPSIS
 
