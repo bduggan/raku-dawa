@@ -3,14 +3,20 @@ unit class Dawa::Debugger;
 use Terminal::ANSI::OO 't';
 has Bool $.should-stop = False;
 
+method update-state(:%debugging) {
+  %debugging{ $*THREAD.id } = $!should-stop;
+}
+
 method run-repl(:$context,:$stack) {
   show-stack($stack);
   loop {
     my $cmd = prompt "dawa> " or last;
+    # Next step in this thread
     if $cmd eq 'n' {
       $!should-stop = True;
       return;
     }
+    # Continue just this thread
     if $cmd eq 'c' {
       $!should-stop = False;
       return;

@@ -3,18 +3,20 @@ use Dawa::Debugger;
 
 use QAST:from<NQP>;
 
-my Bool $debugging = False;
+my Bool %debugging;
+
 my $debugger = Dawa::Debugger.new;
 
 sub stop is export {
-  $debugging = True;
+  put "Stopping thread { $*THREAD.gist }";
+  %debugging{ $*THREAD.id } = True;
 }
 
 sub maybe-stop($context) is hidden-from-backtrace {
-  return unless $debugging;
+  return unless %debugging{ $*THREAD.id };
   my $stack = Backtrace.new;
   $debugger.run-repl(:$context,:$stack);
-  $debugging = so $debugger.should-stop;
+  $debugger.update-state(:%debugging);
 };
 
 sub EXPORT(|) {
