@@ -28,10 +28,18 @@ command will add a lot of unused extra statements to the AST.
 
 ## USAGE
 
+After `stop` is reached, a repl is started, which has a few
+commands.  Type `h` to see them.  Currently, these are the commands:
 
+       n or [return] : advance to the next statement
+             c or ^D : continue execution of this thread
+                   w : show the current stack and code location
+                   h : this help
 
 ## ABOUT THE NAME
 
+The word `dawa` can refer to either medicine or poison in Swahili.  In the
+latter sense, it would be used to describe bug spray, i.e. a debugger
 
 ## SEE ALSO
 

@@ -26,6 +26,7 @@ method show-help {
   say "  n or [return] : advance to the next statement";
   say "        c or ^D : continue execution of this thread";
   say "              w : show the current stack and code location";
+  say "              h : this help";
   say "";
   say "Anything else will be evaluated as a Raku expression in the current context.";
   say "";
