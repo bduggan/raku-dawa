@@ -1,14 +1,14 @@
 use nqp;
 use Dawa::Debugger;
-
 use QAST:from<NQP>;
+use Terminal::ANSI::OO 't';
 
 my Bool %debugging;
 
 my $debugger = Dawa::Debugger.new;
 
 sub stop is export {
-  put "Stopping thread { $*THREAD.gist }";
+  $debugger.stop-thread;
   %debugging{ $*THREAD.id } = True;
 }
 
