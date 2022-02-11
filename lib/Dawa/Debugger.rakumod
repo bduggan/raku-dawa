@@ -10,7 +10,9 @@ method update-state(:%debugging) {
 method run-repl(:$context,:$stack) {
   show-stack($stack);
   loop {
-    my $cmd = prompt "dawa> " or last;
+    my $cmd = prompt "dawa> ";
+    last unless defined($cmd);
+    next unless $cmd.chars > 0;
     # Next step in this thread
     if $cmd eq 'n' {
       $!should-stop = True;

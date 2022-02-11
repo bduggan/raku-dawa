@@ -24,14 +24,14 @@ sub EXPORT(|) {
     method statement(Mu $/) {
       $/.make:
         QAST::Stmts.new(
+          callsame,
           QAST::Op.new( :op('call'), QAST::WVal.new( :value(&maybe-stop) ),
             # pseudostash:
             QAST::Op.new(
                :op('callmethod'), :name('new'),
                QAST::WVal.new( :value($*W.find_single_symbol('PseudoStash')))
             )
-          ),
-          callsame
+          )
         );
     }
   }
