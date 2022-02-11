@@ -1,11 +1,13 @@
 #!/usr/bin/env raku
 
-use Dawa;  # line 3
+use Dawa;
 
 say "one";
 say "two";
 my $x = 99;
-stop;      # line 8
+
+stop;
+
 say "three";
 say "four";
 $x = $x + 11;

@@ -17,7 +17,7 @@
     "Debug"
   ],
   "depends" : [
-    "Terminal::ANSI::OO", "Readline"
+    "Terminal::ANSI", "Readline"
   ],
   "test-depends": [
     "Test"

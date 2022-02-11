@@ -52,9 +52,13 @@ the program.)
 provides a separate executable.  Techniques there provided inspiration for
 this module.
 
+## ENVIRONMENT
+
+The readline history is stored in `DAWA_HISTORY_FILE`, ~/.dawa-history by default.
+
 ## BUGS
 
-The debugger won't work if it is the last statement in a file.
+The `stop`routine won't work if it is the last statement in a file.
 
 There are probably other bugs -- let me know and send a patch!
 
