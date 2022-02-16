@@ -10,23 +10,18 @@ my sub cmd(*%kv) { %commands.push: %kv }
 method run-command($cmd, $line, :$context, :$stack) {
   my $actual = %aliases{ $cmd } // $cmd;
   if %commands{ $actual } {
-    self."$actual"($line, :$context, :$stack);
+    self."$actual"($line.subst(/^^ $cmd \s+/,''), :$context, :$stack);
   } else {
-    self.eval($cmd,:$context,:$stack);
+    self.eval($line,:$context,:$stack);
   }
-}
-
-sub rest($initial,$str) {
-  $str.subst(/^^ $initial \s+ /,'');
 }
 
 alias e => 'eval';
 cmd eval => 'evaluate code in the current context';
-method eval($cmd!,:$context!,:$stack) {
-  my $eval = rest('eval',$cmd);
+method eval($str!,:$context!,:$stack) {
   use MONKEY-SEE-NO-EVAL;
   try {
-    put ( EVAL $eval, :$context ).raku;
+    put ( EVAL $str, :$context ).raku;
     CATCH {
       default {
         put $_;
