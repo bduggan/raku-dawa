@@ -21,7 +21,7 @@ sub rest($initial,$str) {
 }
 
 alias e => 'eval';
-cmd eval => 'eval $code: evaluate $code in the current context';
+cmd eval => 'evaluate code in the current context';
 method eval($cmd!,:$context!,:$stack) {
   my $eval = rest('eval',$cmd);
   use MONKEY-SEE-NO-EVAL;
@@ -36,9 +36,9 @@ method eval($cmd!,:$context!,:$stack) {
 }
 
 alias l => 'ls';
-cmd ls => 'ls [-a] : show [all] lexical variables in the current scope';
+cmd ls => 'show lexical variables in the current scope (-a for all)';
 method ls($cmd, :$context!) {
-  if $cmd.words[1] eq '-a' {
+  if ($cmd.words[1] // '') eq '-a' {
     say $context.keys.sort.join(' ');
     return;
   }
@@ -50,14 +50,24 @@ alias h => 'help';
 cmd help => 'this help';
 method help(|args) {
   say "";
-  say "-- Welcome to Dawa! --";
+  say t.bright-white ~ "-- Welcome to Dawa! --" ~ t.text-reset;
   say "";
   say "The following commands are available: ";
-  say "  n or [return] : advance to the next statement";
-  say "        c or ^D : continue execution of this thread";
-  say "              w : show the current stack and code location";
-  say "        ls [-a] : show [all] lexical variables in the current scope";
-  say "              h : this help";
+  my %all-commands = %commands;
+  my %all-aliases = %aliases;
+  %all-commands<next> = "run the next statement";
+  %all-aliases<n> = 'next';
+  %all-commands<continue> = "continue execution of this thread";
+  push %all-aliases, (c => 'continue');
+  push %all-aliases, ('^D' => 'continue');
+  (my %lookup).push: %all-aliases.invert;
+  for %all-commands.sort -> (:$key is copy, :$value) {
+    with %lookup{ $key }.?join(', ') {
+      $key ~= " ($_)";
+    }
+    say t.bright-yellow ~ $key.fmt('%20s') ~ t.white ~ ' : ' ~ t.bright-green ~ $value ~ t.text-reset;
+  }
+
   say "";
   say "Anything else will be evaluated as a Raku expression in the current context.";
   say "";
@@ -71,7 +81,7 @@ method next($cmd,:%extra) {
 }
 
 alias w => 'where';
-cmd where => 'where : show a stack trace and the current location in the code';
+cmd where => 'show a stack trace and the current location in the code';
 method where($cmd,:$context!,:stack($b)!) {
   my %colors;
   put "\n--- current stack --- ";
