@@ -38,16 +38,16 @@ method ls($cmd, :$context!) {
     return;
   }
   my %hidden = set <!UNIT_MARKER $! $/ $=finish $=pod $?PACKAGE $_ $¢ &stop ::?PACKAGE Dawa EXPORT GLOBALish>;
-  say $context.keys.grep({!%hidden{ $_ } }).sort.join(' ');
+  put $context.keys.grep({!%hidden{ $_ } }).sort.join(' ');
 }
 
 alias h => 'help';
 cmd help => 'this help';
 method help(|args) {
-  say "";
-  say t.bright-white ~ "-- Welcome to Dawa! --" ~ t.text-reset;
-  say "";
-  say "The following commands are available: ";
+  put "";
+  put t.bright-white ~ "-- Welcome to Dawa! --" ~ t.text-reset;
+  put "";
+  put "The following commands are available: ";
   my %all-commands = %commands;
   my %all-aliases = %aliases;
   %all-commands<next> = "run the next statement";
@@ -60,12 +60,12 @@ method help(|args) {
     with %lookup{ $key }.?join(', ') {
       $key ~= " ($_)";
     }
-    say t.bright-yellow ~ $key.fmt('%20s') ~ t.white ~ ' : ' ~ t.bright-green ~ $value ~ t.text-reset;
+    put t.bright-yellow ~ $key.fmt('%20s') ~ t.white ~ ' : ' ~ t.bright-green ~ $value ~ t.text-reset;
   }
 
-  say "";
-  say "Anything else will be evaluated as a Raku expression in the current context.";
-  say "";
+  put "";
+  put "Anything else will be evaluated as a Raku expression in the current context.";
+  put "";
 }
 
 alias n => 'next';

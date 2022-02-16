@@ -1,0 +1,32 @@
+use Test;
+use Dawa::Debugger::Commands;
+
+my $c = Dawa::Debugger::Commands.new;
+my $context = PseudoStash.new;
+
+my $out;
+my @out;
+my $handle = &put.wrap: { @out.push($out = $_) }
+
+$c.eval("1 + 1", :$context);
+is $out, 2, "eval";
+
+$c.run-command("e","e 2+2",:$context);
+is $out, 4, 'run-command';
+
+$c.run-command("eval","eval 3 + 3",:$context);
+is $out, 6, 'run-command';
+
+{
+  my $a-var = 11;
+  my $context = MY::;
+  $c.ls('ls',:$context);
+  is $out,'$a-var $context','ls';
+}
+
+@out = ();
+$c.run-command('help','help');
+ok @out > 3, 'made some help';
+
+done-testing;
+
