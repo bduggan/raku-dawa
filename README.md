@@ -37,17 +37,17 @@ Then:
      10 │
 
     Type h for help
-    dawa> $x
+    dawa (1)> $x
     101
-    dawa> n
+    dawa (1)> n
       7 ▶ $x++;
-    dawa> $x
+    dawa (1)> $x
     10101
-    dawa> n
+    dawa (1)> n
       8 ▶ $x++;
-    dawa> $x
+    dawa (1)> $x
     10102
-    dawa> c
+    dawa (1)> c
     %
 
 ## DESCRIPTION
@@ -70,13 +70,79 @@ command will add a lot of unused extra statements to the AST.
 After `stop` is reached, a repl is started, which has a few
 commands.  Type `h` to see them.  Currently, these are the commands:
 
-       n or [return] : advance to the next statement
-             c or ^D : continue execution of this thread
-                   w : show the current stack and code location
-                   h : this help
+    continue (c, ^D) : continue execution of this thread
+            eval (e) : evaluate code in the current context
+            help (h) : this help
+              ls (l) : show lexical variables in the current scope (-a for all)
+            next (n) : run the next statement
+           where (w) : show a stack trace and the current location in the code
+
+Pressing [enter] by itself on a blank line is the same as `next`.
 
 Anything else is treated as a Raku statement: it will be evaluated,
 the result will be shown.
+
+### Multiple Threads
+
+If several threads are stopped at once, a lock is used in order to
+only have one repl at a time.  Threads wait for this lock.  The
+id of the thread will be in the prompt.  For example:
+
+    use Dawa;
+
+    my $x = 10;
+    start {
+      stop;
+      $x++;
+    }
+    stop;
+    say "x is $x";
+
+can result in :
+
+    ∙ Stopping thread Thread #1 (Initial thread)
+    ∙ Stopping thread Thread #7 (GeneralWorker)
+
+    --- current stack ---
+        in sub  at eg/threads-4.raku line 5
+
+    -- current location --
+      1 │ use Dawa;
+      2 │
+      3 │ my $x = 10;
+      4 │ start {
+      5 ◀   stop;
+      6 ▶   $x++;
+      7 │ }
+      8 │ stop;
+      9 │ say "x is $x";
+     10 │
+
+    Type h for help
+    dawa (7)> $x
+    10
+    dawa (7)> continue
+
+    --- current stack ---
+        in sub <unit> at eg/threads-4.raku line 8
+
+    -- current location --
+      1 │ use Dawa;
+      2 │
+      3 │ my $x = 10;
+      4 │ start {
+      5 │   stop;
+      6 │   $x++;
+      7 │ }
+      8 ◀ stop;
+      9 ▶ say "x is $x";
+     10 │
+
+    dawa (1)> $x
+    11
+    dawa (1)> continue
+    x is 11
+
 
 ## ABOUT THE NAME
 
