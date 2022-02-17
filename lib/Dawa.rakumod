@@ -12,10 +12,14 @@ sub stop is export {
   %debugging{ $*THREAD.id } = True;
 }
 
+my Lock $repl-lock .= new;
+
 sub maybe-stop($context) is hidden-from-backtrace {
   return unless %debugging{ $*THREAD.id };
   my $stack = Backtrace.new;
-  $debugger.run-repl(:$context,:$stack);
+  $repl-lock.protect: {
+    $debugger.run-repl(:$context,:$stack);
+  }
   $debugger.update-state(:%debugging);
 };
 
