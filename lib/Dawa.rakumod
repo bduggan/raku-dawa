@@ -4,6 +4,7 @@ use QAST:from<NQP>;
 use Terminal::ANSI::OO 't';
 
 my Bool %debugging;
+my %breakpoints;
 
 my $debugger = Dawa::Debugger.new;
 
@@ -15,6 +16,7 @@ sub stop is export {
 my Lock $repl-lock .= new;
 
 sub maybe-stop($context) is hidden-from-backtrace {
+  stop if $debugger.breakpoint(callframe(1).file,callframe(1).line);
   return unless %debugging{ $*THREAD.id };
   my $stack = Backtrace.new;
   $repl-lock.protect: {

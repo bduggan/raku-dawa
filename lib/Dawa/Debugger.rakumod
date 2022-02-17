@@ -73,3 +73,7 @@ method run-repl(:$context,:$stack) {
 method stop-thread {
   put %COLORS<message> ~ "∙ Stopping thread { $*THREAD.gist }" ~ t.text-reset;
 }
+
+method breakpoint($file,$line) {
+  $!cmd.breakpoints{ $file }{ $line }
+}

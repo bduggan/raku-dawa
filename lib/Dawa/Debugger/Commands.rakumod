@@ -2,6 +2,9 @@
 unit class Dawa::Debugger::Commands;
 use Terminal::ANSI::OO 't';
 
+# filename => linenumber => True
+has %.breakpoints;
+
 my %aliases;
 my %commands;
 my sub alias(*%kv) { %aliases.push: %kv }
@@ -93,21 +96,42 @@ method where($cmd,:$context!,:stack($b)!) {
     say "    in sub {.subname} at {$c}{.file} line {.line}" ~ t.text-reset;
   }
   put "";
+  my $file = $b.tail;
+  my %leaders;
+  for %.breakpoints.keys -> $file {
+    for %.breakpoints{ $file }.keys -> $line {
+      %colors{ $file }{ $line } = t.bright-magenta;
+      %leaders{ $file }{ $line } = '■';
+    }
+  }
   for @$b {
     next if .is-setting || .is-hidden;
     next if .file eq $?FILE and .is-routine and .subname eq 'debug';
-    show-file-line(.file, .line, :%colors);
+    show-file-line(.file, .line, :%colors, :%leaders);
     last;
   }
 }
 
-sub show-file-line($file is copy, $line, :%colors) {
+alias b => 'break';
+cmd break => 'add a breakpoint (line + optional file)';
+method break($cmd, :$context, :$stack) {
+  my $file;
+  my $line;
+  if $cmd ~~ /^^ \d+ $$/ {
+    $line = +$cmd;
+    $file = $stack.tail.file;
+  }
+  %.breakpoints{ $file }{ $line } = True;
+  say "Added breakpoint at line $line in $file";
+}
+
+sub show-file-line($file is copy, $line, :%colors, :%leaders) {
   $file .= subst(/' ' '(' <-[(]>+ ')' \s* $$/,'');
   put "-- current location --";
   my $width = $line.chars + 2;
   for $file.IO.lines.kv -> $i, $l {
     next if $i < $line - 10;
-    my $sep = "│";
+    my $sep = %leaders{ $file }{ $i + 1 } // "│";
     $sep = "◀" if $i + 1 == $line;
     $sep = "▶" if $i + 1 == $line + 1;
     with %colors{ $file }{ $i + 1 } -> $c {
