@@ -100,8 +100,8 @@ method where($cmd,:$context!,:stack($b)!) {
   my %leaders;
   for %.breakpoints.keys -> $file {
     for %.breakpoints{ $file }.keys -> $line {
-      %colors{ $file }{ $line } = t.bright-magenta;
-      %leaders{ $file }{ $line } = '■';
+      %colors{ $file }{ $line } //= t.bright-magenta;
+      %leaders{ $file }{ $line } //= '■';
     }
   }
   for @$b {
