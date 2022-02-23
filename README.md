@@ -61,8 +61,7 @@ It exports a subroutine `stop` which will pause execution
 of the current thread of the program, and allow for introspecting
 the stack, and stepping through subsequent statements.
 
-Using this module is heavy-handed -- currently just the `use`
-command will add a lot of unused extra statements to the AST.
+Using this module is heavy-handed -- currently just the `use` command will add a lot of unused extra statements to the AST.
 (This implementation may change in the future.)
 
 ## USAGE
@@ -70,6 +69,7 @@ command will add a lot of unused extra statements to the AST.
 After `stop` is reached, a repl is started, which has a few
 commands.  Type `h` to see them.  Currently, these are the commands:
 
+           break (b) : add a breakpoint (line + optional file)
     continue (c, ^D) : continue execution of this thread
             eval (e) : evaluate code in the current context
             help (h) : this help
@@ -82,7 +82,23 @@ Pressing [enter] by itself on a blank line is the same as `next`.
 Anything else is treated as a Raku statement: it will be evaluated,
 the result will be shown.
 
-### Multiple Threads
+### Breakpoints
+
+Breakpoints can be set with `b`, for example:
+
+     dawa (1)> b 13
+     Added breakpoint at line 13 in eg/debug.raku
+     dawa (1)> w
+     ...
+      12 │ say "four";
+      13 ■ $x = $x + 11;
+      14 │ say "five";
+      15 │ say "x is $x";
+
+As shown above, breakpoints are indicated using `■` in the code
+listing, and are not thread-specific.
+
+## Multiple Threads
 
 If several threads are stopped at once, a lock is used in order to
 only have one repl at a time.  Threads wait for this lock.  The

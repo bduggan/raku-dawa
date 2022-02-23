@@ -120,6 +120,9 @@ method break($cmd, :$context, :$stack) {
   if $cmd ~~ /^^ \d+ $$/ {
     $line = +$cmd;
     $file = $stack.tail.file;
+  } else {
+    note "missing line number for breakpoint";
+    return;
   }
   %.breakpoints{ $file }{ $line } = True;
   say "Added breakpoint at line $line in $file";
