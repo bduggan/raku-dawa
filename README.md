@@ -183,7 +183,10 @@ The readline history is stored in `DAWA_HISTORY_FILE`, ~/.dawa-history by defaul
 
 The `stop` routine won't work if it is the last statement in a file.
 
-There are probably other bugs -- let me know and send a patch!
+There are probably other bugs -- let me know and send a patch!  Also
+a mailing list is available to discuss features and send patches:
+
+  https://lists.sr.ht/~bduggan/raku-dawa
 
 ## AUTHOR
 
