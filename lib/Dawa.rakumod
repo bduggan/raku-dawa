@@ -14,9 +14,16 @@ class TrackingState {
   has $.context;
   has $!backtrace;
   has $.thread-gist = $*THREAD.gist;
+  has $.file;
+  has $.line;
+
   method backtrace is hidden-from-backtrace { $!backtrace }
   method TWEAK is hidden-from-backtrace {
     $!backtrace //= Backtrace.new;
+    with $!backtrace.list.first( { !.is-setting && !.is-hidden } ) {
+      $!file = .file;
+      $!line = .line;
+    }
   }
   method Str {
     join "\n",

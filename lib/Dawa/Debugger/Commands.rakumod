@@ -89,7 +89,7 @@ method next($cmd,:%extra) {
 
 alias w => 'where';
 cmd where => 'show a stack trace and the current location in the code';
-method where($cmd,:$context!,:stack($b)!) {
+method where($cmd,:$context!,:stack($b)!,:%tracking) {
   my %colors;
   put "\n--- current stack --- ";
   my $done;
@@ -112,6 +112,11 @@ method where($cmd,:$context!,:stack($b)!) {
       %colors{ $file }{ $line } //= t.bright-magenta;
       %leaders{ $file }{ $line } //= '■';
     }
+  }
+  for %tracking.kv -> $k, $v {
+    %colors{ $v.file }{ $v.line } //= t.color('#FFA500');
+    %leaders{ $v.file }{ $v.line } //= '';
+    %leaders{ $v.file }{ $v.line } ~= "[$k]";
   }
   for @$b {
     next if .is-setting || .is-hidden;
@@ -143,9 +148,10 @@ sub show-file-line($file is copy, $line, :%colors, :%leaders) {
   my $width = $line.chars + 2;
   for $file.IO.lines.kv -> $i, $l {
     next if $i < $line - 10;
-    my $sep = %leaders{ $file }{ $i + 1 } // "│";
-    $sep = "◀" if $i + 1 == $line;
-    $sep = "▶" if $i + 1 == $line + 1;
+    my $flags = %leaders{ $file }{ $i + 1 } // "";
+    $flags ~= "◀" if $i + 1 == $line;
+    $flags ~= "▶" if $i + 1 == $line + 1;
+    my $sep = $flags.fmt('│ %5s │');
     with %colors{ $file }{ $i + 1 } -> $c {
        put ($i + 1).fmt("$c%{$width}d $sep") ~ " $l" ~ t.text-reset;
     } else {

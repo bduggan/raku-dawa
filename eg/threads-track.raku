@@ -9,11 +9,13 @@ stop;
 start loop {
   track;
   $x += 5;
-  sleep 1;
+  sleep 0.3;
   track;
-  sleep 1;
   track;
-  sleep 1;
+  sleep 0.3;
+  $x += 11;
+  track;
+  sleep 0.3;
 }
 
 stop;
