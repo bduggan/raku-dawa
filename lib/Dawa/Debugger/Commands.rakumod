@@ -105,7 +105,6 @@ method where($cmd,:$context!,:stack($b)!,:%tracking) {
     say "    in sub {.subname} at {$c}{.file} line {.line}" ~ t.text-reset;
   }
   put "";
-  my $file = $b.tail;
   my %leaders;
   for %.breakpoints.keys -> $file {
     for %.breakpoints{ $file }.keys -> $line {
@@ -118,12 +117,11 @@ method where($cmd,:$context!,:stack($b)!,:%tracking) {
     %leaders{ $v.file }{ $v.line } //= '';
     %leaders{ $v.file }{ $v.line } ~= "[$k]";
   }
-  for @$b {
-    next if .is-setting || .is-hidden;
-    next if .file eq $?FILE and .is-routine and .subname eq 'debug';
-    show-file-line(.file, .line, :%colors, :%leaders);
-    last;
+  my $frame = @$b.first: {
+    !.is-setting && !.is-hidden && .file ne $?FILE
   }
+  my $file = $frame.file.subst(/' ' '(' <-[(]>+ ')' \s* $$/,'');
+  show-file($file, $frame.line, :%colors, :%leaders);
 }
 
 alias b => 'break';
@@ -142,12 +140,13 @@ method break($cmd, :$context, :$stack) {
   say "Added breakpoint at line $line in $file";
 }
 
-sub show-file-line($file is copy, $line, :%colors, :%leaders) {
-  $file .= subst(/' ' '(' <-[(]>+ ')' \s* $$/,'');
+sub show-file($file, $line, :%colors, :%leaders) {
   put "-- current location --";
   my $width = $line.chars + 2;
+  my $top := 5;  # extra lines to show at the top
+  my $first = min( $line - $top, |( %colors{ $file }.keys >>->> $top ), |( %leaders{$file}.keys >>->> $top ) );
   for $file.IO.lines.kv -> $i, $l {
-    next if $i < $line - 10;
+    next if $i < $first;
     my $flags = %leaders{ $file }{ $i + 1 } // "";
     $flags ~= "◀" if $i + 1 == $line;
     $flags ~= "▶" if $i + 1 == $line + 1;

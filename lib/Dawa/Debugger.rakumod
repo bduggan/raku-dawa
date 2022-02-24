@@ -39,7 +39,7 @@ method run-repl(:$context,:$stack,:%tracking) {
   }
   say %COLORS<message> ~ "Type h for help" ~ t.text-reset unless $said-help++;
   loop {
-    my $cmd = $r.readline("dawa ({$*THREAD.id})> ");
+    my $cmd = $r.readline("dawa [{$*THREAD.id}]> ");
 
     # ^D
     if !defined($cmd) {
