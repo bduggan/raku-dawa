@@ -30,9 +30,9 @@ sub show-line($stack) {
 
 my $said-help;
 
-method run-repl(:$context,:$stack) {
+method run-repl(:$context,:$stack,:%tracking) {
   if $!first {
-    $!cmd.run-command("where","where",:$stack,:$context);
+    $!cmd.run-command("where","where",:$stack,:$context,:%tracking);
     $!first = False;
   } else {
     show-line($stack);
@@ -66,7 +66,7 @@ method run-repl(:$context,:$stack) {
 
     # anything else
     my $run = $cmd.words[0];
-    $!cmd.run-command($run, $cmd, :$context, :$stack);
+    $!cmd.run-command($run, $cmd, :$context, :$stack, :%tracking);
   }
 }
 

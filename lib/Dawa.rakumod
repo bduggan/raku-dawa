@@ -4,13 +4,38 @@ use QAST:from<NQP>;
 use Terminal::ANSI::OO 't';
 
 my Bool %debugging;
+my %tracking;
+
 my %breakpoints;
 
 my $debugger = Dawa::Debugger.new;
 
-sub stop is export {
+class TrackingState {
+  has $.context;
+  has $!backtrace;
+  has $.thread-gist = $*THREAD.gist;
+  method backtrace is hidden-from-backtrace { $!backtrace }
+  method TWEAK is hidden-from-backtrace {
+    $!backtrace //= Backtrace.new;
+  }
+  method Str {
+    join "\n",
+     $.thread-gist, |$.backtrace.list.grep( {
+       !.is-setting && !.is-hidden
+     } ).map: {
+       .Str.trim-trailing
+     }
+  }
+}
+
+sub stop is export is hidden-from-backtrace {
   $debugger.stop-thread;
   %debugging{ $*THREAD.id } = True;
+  %tracking{ $*THREAD.id } = TrackingState.new;
+}
+
+sub track is export is hidden-from-backtrace {
+  %tracking{ $*THREAD.id } = TrackingState.new;
 }
 
 my Lock $repl-lock .= new;
@@ -20,7 +45,7 @@ sub maybe-stop($context) is hidden-from-backtrace {
   return unless %debugging{ $*THREAD.id };
   my $stack = Backtrace.new;
   $repl-lock.protect: {
-    $debugger.run-repl(:$context,:$stack);
+    $debugger.run-repl(:$context,:$stack, :%tracking);
   }
   $debugger.update-state(:%debugging);
 };

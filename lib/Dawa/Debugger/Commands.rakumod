@@ -10,12 +10,21 @@ my %commands;
 my sub alias(*%kv) { %aliases.push: %kv }
 my sub cmd(*%kv) { %commands.push: %kv }
 
-method run-command($cmd, $line, :$context, :$stack) {
+method run-command($cmd, $line, :$context, :$stack, :%tracking) {
   my $actual = %aliases{ $cmd } // $cmd;
   if %commands{ $actual } {
-    self."$actual"($line.subst(/^^ $cmd \s+/,''), :$context, :$stack);
+    self."$actual"($line.subst(/^^ $cmd \s+/,''), :$context, :$stack,:%tracking);
   } else {
-    self.eval($line,:$context,:$stack);
+    self.eval($line,:$context,:$stack,:%tracking);
+  }
+}
+
+alias t => 'threads';
+cmd threads => 'show all threads being tracked';
+method threads($str,:$context,:$stack,:%tracking) {
+  for %tracking.kv -> $k, $v {
+    say "--- thread $k ---";
+    say $v.Str.indent(2);
   }
 }
 
