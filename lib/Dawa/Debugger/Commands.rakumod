@@ -22,6 +22,11 @@ method run-command($cmd, $line, :$context, :$stack, :%tracking) {
 alias t => 'threads';
 cmd threads => 'show all threads being tracked';
 method threads($str,:$context,:$stack,:%tracking) {
+  with %tracking{ $str } {
+    say "thread $str";
+    say .backtrace.full;
+    return;
+  }
   for %tracking.kv -> $k, $v {
     say "--- thread $k ---";
     say $v.Str.indent(2);
@@ -92,19 +97,7 @@ cmd where => 'show a stack trace and the current location in the code';
 method where($cmd,:$context!,:stack($b)!,:%tracking) {
   my %colors;
   put "\n--- current stack --- ";
-  my $done;
-  for @$b {
-    next if .is-setting || .is-hidden;
-    my $c;
-    %colors{ .file }{ .line } = t.bright-green;
-    unless $done++ {
-      %colors{ .file }{ .line } = t.bright-cyan;
-      %colors{ .file }{ .line + 1 } = t.bright-yellow;
-    }
-    $c = %colors{ .file }{ .line };
-    say "    in sub {.subname} at {$c}{.file} line {.line}" ~ t.text-reset;
-  }
-  put "";
+  put $b.Str;
   my %leaders;
   for %.breakpoints.keys -> $file {
     for %.breakpoints{ $file }.keys -> $line {
@@ -121,6 +114,8 @@ method where($cmd,:$context!,:stack($b)!,:%tracking) {
     !.is-setting && !.is-hidden && .file ne $?FILE
   }
   my $file = $frame.file.subst(/' ' '(' <-[(]>+ ')' \s* $$/,'');
+  %leaders{ $file }{ $frame.line } = '▶';
+  %colors{ $file }{ $frame.line } = t.bright-yellow;
   show-file($file, $frame.line, :%colors, :%leaders);
 }
 
@@ -140,16 +135,18 @@ method break($cmd, :$context, :$stack) {
   say "Added breakpoint at line $line in $file";
 }
 
-sub show-file($file, $line, :%colors, :%leaders) {
+sub show-file(Str $file, Int $line, :%colors, :%leaders) {
   put "-- current location --";
-  my $width = $line.chars + 2;
-  my $top := 5;  # extra lines to show at the top
-  my $first = min( $line - $top, |( %colors{ $file }.keys >>->> $top ), |( %leaders{$file}.keys >>->> $top ) );
+  my $width := $line.chars + 2; # width of line numbers
+  my $top   := 5;               # extra lines to show at the top
+  my $first = min(
+     $line - $top,
+     |(  %colors{$file}.keys >>->> $top ),
+     |( %leaders{$file}.keys >>->> $top )
+  );
   for $file.IO.lines.kv -> $i, $l {
     next if $i < $first;
     my $flags = %leaders{ $file }{ $i + 1 } // "";
-    $flags ~= "◀" if $i + 1 == $line;
-    $flags ~= "▶" if $i + 1 == $line + 1;
     my $sep = $flags.fmt('│ %5s │');
     with %colors{ $file }{ $i + 1 } -> $c {
        put ($i + 1).fmt("$c%{$width}d $sep") ~ " $l" ~ t.text-reset;
