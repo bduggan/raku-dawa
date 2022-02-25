@@ -113,7 +113,34 @@ of thread 1.
 
 If several threads are stopped at once, a lock is used in order to
 only have one repl at a time.  Threads wait for this lock.  The
-id of the thread will be in the prompt, as shown above.
+id of the thread will be in the prompt, as shown above.  The `track`
+statement can be used to keep track of threads without stopping them.
+For instance, this code shows the debugger stopped in thread 1, but
+indicating the current statement in thread 7 that is being executed:
+
+    ∙ Stopping thread Thread #1 (Initial thread)
+
+    --- current stack ---
+      in block <unit> at example.raku line 11
+
+    -- current location --
+       3 │       │ my $i = 1;
+       4 │       │
+       5 │       │ start loop {
+       6 │       │   $i++;
+       7 │   [7] │   track;
+       8 │       │ }
+       9 │       │
+      10 │   [1] │ stop;
+      11 │     ▶ │ say 'bye!';
+      12 │       │
+
+    Type h for help
+    dawa [1]>
+
+Note that in this situation thread 7 continues to run even while the repl
+is active.  To also stop thread 7 while debugging, you can add a breakpoint
+(since breakpoints apply to all threads).
 
 ## ABOUT THE NAME
 
