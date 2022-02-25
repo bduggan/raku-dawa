@@ -1,3 +1,9 @@
+0.0.4 2022-02-25
+  - call maybe_stop first in the AST (bug fix)
+  - fix highlighting
+  - better colors
+  - add "track" export, and "threads" command
+
 0.0.3 2022-02-23
   - add breakpoints
   - add thread support with a lock
