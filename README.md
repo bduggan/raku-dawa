@@ -69,12 +69,13 @@ Using this module is heavy-handed -- currently just the `use` command will add a
 After `stop` is reached, a repl is started, which has a few
 commands.  Type `h` to see them.  Currently, these are the commands:
 
-           break (b) : add a breakpoint (line + optional file)
-    continue (c, ^D) : continue execution of this thread
+           break (b) : [N [filename] ] add a breakpoint at line N [in filename]
+    continue (^D, c) : continue execution of this thread
             eval (e) : evaluate code in the current context
             help (h) : this help
-              ls (l) : show lexical variables in the current scope (-a for all)
+              ls (l) : [-a] show [all] lexical variables in the current scope
             next (n) : run the next statement
+         threads (t) : [id] show threads being tracked [or just thread #id]
            where (w) : show a stack trace and the current location in the code
 
 Pressing [enter] by itself on a blank line is the same as `next`.

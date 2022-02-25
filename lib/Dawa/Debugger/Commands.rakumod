@@ -20,7 +20,7 @@ method run-command($cmd, $line, :$context, :$stack, :%tracking) {
 }
 
 alias t => 'threads';
-cmd threads => 'show all threads being tracked';
+cmd threads => '[id] show threads being tracked [or just thread #id]';
 method threads($str,:$context,:$stack,:%tracking) {
   with %tracking{ $str } {
     say "thread $str";
@@ -48,7 +48,7 @@ method eval($str!,:$context!,:$stack) {
 }
 
 alias l => 'ls';
-cmd ls => 'show lexical variables in the current scope (-a for all)';
+cmd ls => '[-a] show [all] lexical variables in the current scope';
 method ls($cmd, :$context!) {
   if ($cmd.words[1] // '') eq '-a' {
     say $context.keys.sort.join(' ');
@@ -81,6 +81,7 @@ method help(|args) {
   }
 
   put "";
+  put "A blank line (Enter) is equivalent to 'n'.";
   put "Anything else will be evaluated as a Raku expression in the current context.";
   put "";
 }
@@ -120,7 +121,7 @@ method where($cmd,:$context!,:stack($b)!,:%tracking) {
 }
 
 alias b => 'break';
-cmd break => 'add a breakpoint (line + optional file)';
+cmd break => '[N [filename] ] add a breakpoint at line N [in filename]';
 method break($cmd, :$context, :$stack) {
   my $file;
   my $line;
