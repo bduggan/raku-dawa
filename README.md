@@ -18,37 +18,35 @@ In example.raku:
 
 Then:
 
-    % raku example.raku
     ∙ Stopping thread Thread #1 (Initial thread)
 
     --- current stack ---
-        in sub <unit> at example.raku line 5
+      in block <unit> at eg/example.raku line 6
 
     -- current location --
-      1 │ use Dawa;
-      2 │
-      3 │ my $x = 100;
-      4 │ $x = $x + 1;
-      5 ◀ stop;
-      6 ▶ $x = $x + 10000;
-      7 │ $x++;
-      8 │ $x++;
-      9 │ $x++;
-     10 │
+      1 │       │     use Dawa;
+      2 │       │
+      3 │       │     my $x = 100;
+      4 │       │     $x = $x + 1;
+      5 │   [1] │     stop;
+      6 │     ▶ │     $x = $x + 10000;
+      7 │       │     $x++;
+      8 │       │     $x++;
+      9 │       │     $x++;
+     10 │       │
 
     Type h for help
-    dawa (1)> $x
+    dawa [1]> $x
     101
-    dawa (1)> n
-      7 ▶ $x++;
-    dawa (1)> $x
+    dawa [1]> n
+      7 ▶     $x++;
+    dawa [1]> $x
     10101
-    dawa (1)> n
-      8 ▶ $x++;
-    dawa (1)> $x
+    dawa [1]> n
+      8 ▶     $x++;
+    dawa [1]> $x
     10102
-    dawa (1)> c
-    %
+    dawa [1]> c
 
 ## DESCRIPTION
 
