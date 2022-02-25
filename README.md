@@ -57,9 +57,15 @@ Ruby's [pry](https://github.com/pry/pry) and Python's
 [import pdb; pdb.set_trace()](https://docs.python.org/3/library/pdb.html)
 idiom.
 
-It exports a subroutine `stop` which will pause execution
-of the current thread of the program, and allow for introspecting
-the stack, and stepping through subsequent statements.
+It exports two subroutines: `stop` and `track`, which work as follows:
+
+* `stop` will pause execution of the current thread of the program,
+  and allow for introspecting the stack, and stepping through subsequent
+  statements.
+
+* `track` will allow any thread which executes this line of code to be tracked;
+  the position and stack of all threads which go through this statement can
+  be viewed while the debugger is active.
 
 Using this module is heavy-handed -- currently just the `use` command will add a lot of unused extra statements to the AST.
 (This implementation may change in the future.)
@@ -87,79 +93,29 @@ the result will be shown.
 
 Breakpoints can be set with `b`, for example:
 
-     dawa (1)> b 13
+     dawa [1]> b 13
      Added breakpoint at line 13 in eg/debug.raku
-     dawa (1)> w
+     dawa [1]> w
      ...
-      12 │ say "four";
-      13 ■ $x = $x + 11;
-      14 │ say "five";
-      15 │ say "x is $x";
+       9 │   [1] │ stop;
+      10 │       │
+      11 │     ▶ │ say "three";
+      12 │       │ say "four";
+      13 │     ■ │ $x = $x + 11;
+      14 │       │ say "five";
 
 As shown above, breakpoints are indicated using `■` in the code
-listing, and are not thread-specific.
+listing, and are not thread-specific.  The triangle (▶) is the
+next line of code that will be executed.  The `[1]` indicates the
+last statement executed by thread 1.  The `[1]` in the prompt
+indicates that statements will currently be evaluated in the context
+of thread 1.
 
 ## Multiple Threads
 
 If several threads are stopped at once, a lock is used in order to
 only have one repl at a time.  Threads wait for this lock.  The
-id of the thread will be in the prompt.  For example:
-
-    use Dawa;
-
-    my $x = 10;
-    start {
-      stop;
-      $x++;
-    }
-    stop;
-    say "x is $x";
-
-can result in :
-
-    ∙ Stopping thread Thread #1 (Initial thread)
-    ∙ Stopping thread Thread #7 (GeneralWorker)
-
-    --- current stack ---
-        in sub  at eg/threads-4.raku line 5
-
-    -- current location --
-      1 │ use Dawa;
-      2 │
-      3 │ my $x = 10;
-      4 │ start {
-      5 ◀   stop;
-      6 ▶   $x++;
-      7 │ }
-      8 │ stop;
-      9 │ say "x is $x";
-     10 │
-
-    Type h for help
-    dawa (7)> $x
-    10
-    dawa (7)> continue
-
-    --- current stack ---
-        in sub <unit> at eg/threads-4.raku line 8
-
-    -- current location --
-      1 │ use Dawa;
-      2 │
-      3 │ my $x = 10;
-      4 │ start {
-      5 │   stop;
-      6 │   $x++;
-      7 │ }
-      8 ◀ stop;
-      9 ▶ say "x is $x";
-     10 │
-
-    dawa (1)> $x
-    11
-    dawa (1)> continue
-    x is 11
-
+id of the thread will be in the prompt, as shown above.
 
 ## ABOUT THE NAME
 
