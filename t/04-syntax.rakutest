@@ -1,0 +1,8 @@
+use Test;
+
+use Dawa;
+
+plan 1;
+my %y = ( x => 2 );
+is %y<x>, 2, 'statement worked';
+
