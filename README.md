@@ -91,9 +91,9 @@ the result will be shown.
 
 Breakpoints can be set with `b`, for example:
 
-dawa [1]> b 13
-Added breakpoint at line 13 in eg/debug.raku
-dawa [1]> w
+      dawa [1]> b 13
+      Added breakpoint at line 13 in eg/debug.raku
+      dawa [1]> w
 
       10 │       │
       11 │  [1]▶ │ say "three";
