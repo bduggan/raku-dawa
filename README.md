@@ -24,12 +24,11 @@ Then:
       in block <unit> at eg/example.raku line 6
 
     -- current location --
-      1 │       │     use Dawa;
       2 │       │
       3 │       │     my $x = 100;
       4 │       │     $x = $x + 1;
-      5 │   [1] │     stop;
-      6 │     ▶ │     $x = $x + 10000;
+      5 │       │     stop;
+      6 │  [1]▶ │     $x = $x + 10000;
       7 │       │     $x++;
       8 │       │     $x++;
       9 │       │     $x++;
@@ -47,6 +46,11 @@ Then:
     dawa [1]> $x
     10102
     dawa [1]> c
+
+In the example above `[1]▶` indicates that this is the next
+statement that will be executed by thread 1.  After advancing
+one statement (with `n`), the statement that has not yet been
+executed (and is coming up next) will be shown.
 
 ## DESCRIPTION
 
@@ -87,23 +91,24 @@ the result will be shown.
 
 Breakpoints can be set with `b`, for example:
 
-     dawa [1]> b 13
-     Added breakpoint at line 13 in eg/debug.raku
-     dawa [1]> w
-     ...
-       9 │   [1] │ stop;
+dawa [1]> b 13
+Added breakpoint at line 13 in eg/debug.raku
+dawa [1]> w
+
       10 │       │
-      11 │     ▶ │ say "three";
+      11 │  [1]▶ │ say "three";
       12 │       │ say "four";
       13 │     ■ │ $x = $x + 11;
       14 │       │ say "five";
+      15 │       │ say "x is $x";
+      16 │       │ say "bye";
+      17 │       │
 
-As shown above, breakpoints are indicated using `■` in the code
-listing, and are not thread-specific.  The triangle (▶) is the
-next line of code that will be executed.  The `[1]` indicates the
-last statement executed by thread 1.  The `[1]` in the prompt
-indicates that statements will currently be evaluated in the context
-of thread 1.
+As shown above, breakpoints are indicated using `■` and are not
+thread-specific.  The triangle (▶) is the next line of code that
+will be executed.  The `[1]` indicates the next statement to be executed
+by thread 1.  The `[1]` in the prompt indicates that statements
+will currently be evaluated in the context of thread 1 by default.
 
 ## Multiple Threads
 
@@ -125,8 +130,8 @@ positions will also be indicated.
        7 │   [7] │   $i++;
        8 │       │ }
        9 │       │
-      10 │   [1] │ stop;
-      11 │     ▶ │ say 'bye!';
+      10 │       │ stop;
+      11 │  [1]▶ │ say 'bye!';
       12 │       │
 
     Type h for help
