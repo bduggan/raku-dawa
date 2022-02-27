@@ -6,9 +6,14 @@ my $x = 10;
 
 stop;
 
-start loop {
-  $x += 5;
-  sleep 1;
+start {
+  my $y = 11;
+  loop {
+    my $z = 100;
+    $x += 5;
+    $y += 9;
+    sleep 1;
+  }
 }
 
 stop;

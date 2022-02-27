@@ -25,7 +25,6 @@ method threads($str,:$context,:$stack,:%tracking) {
   with %tracking{ $str } {
     say "thread $str";
     say .backtrace.full;
-    say .context.raku;
     return;
   }
   for %tracking.kv -> $k, $v {
@@ -35,11 +34,20 @@ method threads($str,:$context,:$stack,:%tracking) {
 }
 
 alias e => 'eval';
-cmd eval => 'evaluate code in the current context';
-method eval($str!,:$context!,:$stack) {
+cmd eval => '[id] evaluate code in the current context [or in thread #id]';
+method eval($str!,:$context!,:$stack,:%tracking) {
   use MONKEY-SEE-NO-EVAL;
+  my $thread-context;
+  my $thread-eval;
+  with $str.words[0] -> $id {
+    if %tracking{ $id }:exists {
+      put t.color('#779977') ~ "evaluating in thread $id" ~ t.text-reset;
+      $thread-eval = $str.subst( / ^^ $id \s+ /, '' );
+      $thread-context = %tracking{ $id }.context;
+    }
+  }
   try {
-    put ( EVAL $str, :$context ).raku;
+    put ( EVAL ($thread-eval // $str), :context( $thread-context // $context) ).raku;
     CATCH {
       default {
         put $_;
@@ -49,14 +57,20 @@ method eval($str!,:$context!,:$stack) {
 }
 
 alias l => 'ls';
-cmd ls => '[-a] show [all] lexical variables in the current scope';
-method ls($cmd, :$context!) {
+cmd ls => '[-a] [id] show [all] lexical variables in the current scope [or in thread #id]';
+method ls($cmd, :$context!, :%tracking) {
   if ($cmd.words[1] // '') eq '-a' {
     say $context.keys.sort.join(' ');
     return;
   }
-  my %hidden = set <!UNIT_MARKER $! $/ $=finish $=pod $?PACKAGE $_ $¢ &stop ::?PACKAGE Dawa EXPORT GLOBALish>;
-  put $context.keys.grep({!%hidden{ $_ } }).sort.join(' ');
+  my $thread-context;
+  with $cmd.words[*-1] {
+    with %tracking{ $_ } {
+      $thread-context = .context;
+    }
+  }
+  my %hidden = set <!UNIT_MARKER $! $/ $=finish $=pod $?PACKAGE $_ $¢ &stop ::?PACKAGE Dawa EXPORT GLOBALish TrackingState>;
+  put ($thread-context // $context).keys.grep({!%hidden{ $_ } }).sort.join(' ');
 }
 
 alias h => 'help';

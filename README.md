@@ -136,6 +136,12 @@ Note that in this situation thread 7 continues to run even while the repl
 is active.  To also stop thread 7 while debugging, you can add a breakpoint
 (since breakpoints apply to all threads).
 
+The `eval` command can be used to evaluate expression in another thread.  For instance,
+`eval 7 $i` will evaluate the `$i` in thread 7.
+
+The `ls` command can show lexical variables in another thread.  Note that only variables
+in the innermost lexical scope will be shown.
+
 ## ABOUT THE NAME
 
 The word `dawa` can refer to either medicine or poison in Swahili.  In the
