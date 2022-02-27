@@ -45,7 +45,10 @@ my Lock $repl-lock .= new;
 
 sub maybe-stop($context) is hidden-from-backtrace {
   %tracking{ $*THREAD.id } = TrackingState.new(:$context);
-  stop if $debugger.breakpoint(callframe(1).file,callframe(1).line);
+  if $debugger.breakpoint(callframe(1).file,callframe(1).line) {
+    say "encountered breakpoint at " ~ callframe(1).file ~ ' line ' ~ callframe(1).line;
+    stop;
+  }
   return unless %debugging{ $*THREAD.id };
   my $stack = Backtrace.new;
   $repl-lock.protect: {
@@ -57,17 +60,21 @@ sub maybe-stop($context) is hidden-from-backtrace {
 sub EXPORT(|) {
   role Dawa {
     method statement(Mu $/) {
-      $/.make:
-        QAST::Stmts.new(
-          QAST::Op.new( :op('call'), QAST::WVal.new( :value(&maybe-stop) ),
-            # pseudostash:
-            QAST::Op.new(
-               :op('callmethod'), :name('new'),
-               QAST::WVal.new( :value($*W.find_single_symbol('PseudoStash')))
-            )
-          ),
-          callsame
-        );
+      my $inner := callsame;
+      my $ast := QAST::Stmts.new(
+                    QAST::Op.new( :op('call'), QAST::WVal.new( :value(&maybe-stop) ),
+                      # pseudostash:
+                      QAST::Op.new(
+                         :op('callmethod'), :name('new'),
+                         QAST::WVal.new( :value($*W.find_single_symbol('PseudoStash')))
+                      )
+                    ),
+                     $inner
+                );
+      if nqp::istype($inner,QAST::Op) {
+        $ast.sunk(1) unless $inner.op eq 'callmethod';
+      }
+      $/.make: $ast;
     }
   }
   $*LANG.define_slang: 'MAIN', $*LANG.slang_grammar('MAIN'), $*LANG.actions.^mixin(Dawa);

@@ -2,7 +2,20 @@ use Test;
 
 use Dawa;
 
-plan 1;
+plan 2;
+
 my %y = ( x => 2 );
+
 is %y<x>, 2, 'statement worked';
+
+my $x = 1;
+
+my $promise = start {
+  sleep 1;
+  loop { $x += 5; last; }
+}
+
+await $promise;
+
+is $x, 6, "promise worked";
 
