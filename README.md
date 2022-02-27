@@ -163,6 +163,10 @@ The readline history is stored in `DAWA_HISTORY_FILE`, ~/.dawa-history by defaul
 
 ## BUGS
 
+Since this relies on undocumented behavior, it could break at any time.  Modifying
+the AST may also cause your program to behave in unexpected ways.  It may be
+possible to improve this once the AST work in Raku is available.
+
 The `stop` routine won't work if it is the last statement in a file.
 
 There are probably other bugs -- let me know and send a patch!  Also
