@@ -1,3 +1,8 @@
+0.0.5 2022-02-27
+  - Try to fix AST problems caused by sink context
+  - Add ability to eval in another thread
+  - remove "track"; just track all threads
+
 0.0.4 2022-02-25
   - call maybe_stop first in the AST (bug fix)
   - fix highlighting
