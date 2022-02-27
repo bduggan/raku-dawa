@@ -25,6 +25,7 @@ method threads($str,:$context,:$stack,:%tracking) {
   with %tracking{ $str } {
     say "thread $str";
     say .backtrace.full;
+    say .context.raku;
     return;
   }
   for %tracking.kv -> $k, $v {
@@ -115,7 +116,7 @@ method where($cmd,:$context!,:stack($b)!,:%tracking) {
     !.is-setting && !.is-hidden && .file ne $?FILE
   }
   my $file = $frame.file.subst(/' ' '(' <-[(]>+ ')' \s* $$/,'');
-  %leaders{ $file }{ $frame.line } = '▶';
+  %leaders{ $file }{ $frame.line } ~= '▶';
   %colors{ $file }{ $frame.line } = t.bright-yellow;
   show-file($file, $frame.line, :%colors, :%leaders);
 }

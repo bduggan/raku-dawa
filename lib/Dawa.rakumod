@@ -41,13 +41,10 @@ sub stop is export is hidden-from-backtrace {
   %tracking{ $*THREAD.id } = TrackingState.new;
 }
 
-sub track is export is hidden-from-backtrace {
-  %tracking{ $*THREAD.id } = TrackingState.new;
-}
-
 my Lock $repl-lock .= new;
 
 sub maybe-stop($context) is hidden-from-backtrace {
+  %tracking{ $*THREAD.id } = TrackingState.new(:$context);
   stop if $debugger.breakpoint(callframe(1).file,callframe(1).line);
   return unless %debugging{ $*THREAD.id };
   my $stack = Backtrace.new;
@@ -55,7 +52,6 @@ sub maybe-stop($context) is hidden-from-backtrace {
     $debugger.run-repl(:$context,:$stack, :%tracking);
   }
   $debugger.update-state(:%debugging);
-  %tracking{ $*THREAD.id } = TrackingState.new;
 };
 
 sub EXPORT(|) {

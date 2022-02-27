@@ -55,17 +55,13 @@ Ruby's [pry](https://github.com/pry/pry) and Python's
 [import pdb; pdb.set_trace()](https://docs.python.org/3/library/pdb.html)
 idiom.
 
-It exports two subroutines: `stop` and `track`, which work as follows:
+It exports one subroutine: `stop`, which will pause
+execution of the current thread of the program, and
+allow for introspecting the stack, and stepping through
+subsequent statements.
 
-* `stop` will pause execution of the current thread of the program,
-  and allow for introspecting the stack, and stepping through subsequent
-  statements.
-
-* `track` will allow any thread which executes this line of code to be tracked;
-  the position and stack of all threads which go through this statement can
-  be viewed while the debugger is active.
-
-Using this module is heavy-handed -- currently just the `use` command will add a lot of unused extra statements to the AST.
+Using this module is heavy-handed -- currently just the `use`
+command will add a lot of unused extra statements to the AST.
 (This implementation may change in the future.)
 
 ## USAGE
@@ -79,7 +75,7 @@ commands.  Type `h` to see them.  Currently, these are the commands:
             help (h) : this help
               ls (l) : [-a] show [all] lexical variables in the current scope
             next (n) : run the next statement
-         threads (t) : [id] show threads being tracked [or just thread #id]
+         threads (t) : [id] show all threads that have been seen [or details of thread #id]
            where (w) : show a stack trace and the current location in the code
 
 Pressing [enter] by itself on a blank line is the same as `next`.
@@ -113,10 +109,8 @@ of thread 1.
 
 If several threads are stopped at once, a lock is used in order to
 only have one repl at a time.  Threads wait for this lock.  The
-id of the thread will be in the prompt, as shown above.  The `track`
-statement can be used to keep track of threads without stopping them.
-For instance, this code shows the debugger stopped in thread 1, but
-indicating the current statement in thread 7 that is being executed:
+id of the thread will be in the prompt, as shown above.  Other threads'
+positions will also be indicated.
 
     ∙ Stopping thread Thread #1 (Initial thread)
 
@@ -128,7 +122,7 @@ indicating the current statement in thread 7 that is being executed:
        4 │       │
        5 │       │ start loop {
        6 │       │   $i++;
-       7 │   [7] │   track;
+       7 │   [7] │   $i++;
        8 │       │ }
        9 │       │
       10 │   [1] │ stop;
