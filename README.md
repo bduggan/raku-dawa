@@ -73,14 +73,14 @@ command will add a lot of unused extra statements to the AST.
 After `stop` is reached, a repl is started, which has a few
 commands.  Type `h` to see them.  Currently, these are the commands:
 
-           break (b) : [N [filename] ] add a breakpoint at line N [in filename]
-    continue (^D, c) : continue execution of this thread
-            eval (e) : evaluate code in the current context
-            help (h) : this help
-              ls (l) : [-a] show [all] lexical variables in the current scope
-            next (n) : run the next statement
-         threads (t) : [id] show all threads that have been seen [or details of thread #id]
-           where (w) : show a stack trace and the current location in the code
+               break (b) : [N [filename] ] add a breakpoint at line N [in filename]
+        continue (c, ^D) : continue execution of this thread
+                eval (e) : [id] evaluate code in the current context [or in thread #id]
+                help (h) : this help
+                  ls (l) : [-a] [id] show [all] lexical variables in the current scope [or in thread #id]
+                next (n) : run the next statement
+             threads (t) : [id] show threads being tracked [or just thread #id]
+               where (w) : show a stack trace and the current location in the code
 
 Pressing [enter] by itself on a blank line is the same as `next`.
 
