@@ -1,6 +1,9 @@
 
 unit class Dawa::Debugger::Commands;
 use Terminal::ANSI::OO 't';
+use Dawa::Exception;
+
+has Lock $.stdout-lock .= new;
 
 # filename => linenumber => True
 has %.breakpoints;
@@ -17,6 +20,28 @@ method run-command($cmd, $line, :$context, :$stack, :%tracking) {
   } else {
     self.eval($line,:$context,:$stack,:%tracking);
   }
+}
+
+alias q => 'quit';
+cmd quit => 'terminate the program (exit)';
+method quit($str) {
+  exit note "bye!":
+}
+
+alias d => 'defer';
+cmd defer => '[n] Defer to thread [n], or the next waiting one';
+method defer($str,:$context,:$stack,:%tracking) {
+  my $de;
+  with $str.words[0] -> $n {
+    unless $n ~~ /^^ \d+ $$/ {
+      note "invalid thread id '$n'";
+      return;
+    }
+    $de = Dawa::Exception.new(defer-to => +$n);
+  } else {
+    $de = Dawa::Exception.new;
+  }
+  $de.throw;
 }
 
 alias t => 'threads';
@@ -112,8 +137,6 @@ alias w => 'where';
 cmd where => 'show a stack trace and the current location in the code';
 method where($cmd,:$context!,:stack($b)!,:%tracking) {
   my %colors;
-  put "\n--- current stack --- ";
-  put $b.Str;
   my %leaders;
   for %.breakpoints.keys -> $file {
     for %.breakpoints{ $file }.keys -> $line {
@@ -130,9 +153,14 @@ method where($cmd,:$context!,:stack($b)!,:%tracking) {
     !.is-setting && !.is-hidden && .file ne $?FILE
   }
   my $file = $frame.file.subst(/' ' '(' <-[(]>+ ')' \s* $$/,'');
-  %leaders{ $file }{ $frame.line } ~= '▶';
+  my %indicators;
+  %indicators{ $file }{ $frame.line } ~= '▶';
   %colors{ $file }{ $frame.line } = t.bright-yellow;
-  show-file($file, $frame.line, :%colors, :%leaders);
+  $.stdout-lock.protect: {
+    put "\n--- current stack --- ";
+    put $b.Str;
+    show-file($file, $frame.line, :%colors, :%leaders, :%indicators);
+  }
 }
 
 alias b => 'break';
@@ -151,7 +179,7 @@ method break($cmd, :$context, :$stack) {
   say "Added breakpoint at line $line in $file";
 }
 
-sub show-file(Str $file, Int $line, :%colors, :%leaders) {
+sub show-file(Str $file, Int $line, :%colors, :%leaders, :%indicators) {
   put "-- current location --";
   my $width := $line.chars + 2; # width of line numbers
   my $top   := 5;               # extra lines to show at the top
@@ -160,9 +188,17 @@ sub show-file(Str $file, Int $line, :%colors, :%leaders) {
      |(  %colors{$file}.keys >>->> $top ),
      |( %leaders{$file}.keys >>->> $top )
   );
+  my @footnotes;
+  my $next-footnote = 'a';
   for $file.IO.lines.kv -> $i, $l {
     next if $i < $first;
     my $flags = %leaders{ $file }{ $i + 1 } // "";
+    if $flags.chars > 5 {
+      @footnotes.append: { $next-footnote => $flags };
+      $flags = '(' ~ $next-footnote ~ ')';
+      $next-footnote++;
+    }
+    $flags ~= %indicators{ $file }{ $i + 1} // "";
     my $sep = $flags.fmt('│ %5s │');
     with %colors{ $file }{ $i + 1 } -> $c {
        put ($i + 1).fmt("$c%{$width}d $sep") ~ " $l" ~ t.text-reset;
@@ -171,5 +207,10 @@ sub show-file(Str $file, Int $line, :%colors, :%leaders) {
     }
     last if $i > $line + 10;
   }
+  put "─" x 40 if @footnotes;
+  for @footnotes -> $kv {
+    put '(' ~ $kv.key ~ ") : " ~ $kv.value;
+  }
+  put "─" x 40 if @footnotes;
   put "";
 }

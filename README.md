@@ -73,14 +73,16 @@ command will add a lot of unused extra statements to the AST.
 After `stop` is reached, a repl is started, which has a few
 commands.  Type `h` to see them.  Currently, these are the commands:
 
-               break (b) : [N [filename] ] add a breakpoint at line N [in filename]
-        continue (c, ^D) : continue execution of this thread
-                eval (e) : [id] evaluate code in the current context [or in thread #id]
-                help (h) : this help
-                  ls (l) : [-a] [id] show [all] lexical variables in the current scope [or in thread #id]
-                next (n) : run the next statement
-             threads (t) : [id] show threads being tracked [or just thread #id]
-               where (w) : show a stack trace and the current location in the code
+             break (b) : [N [filename] ] add a breakpoint at line N [in filename]
+      continue (^D, c) : continue execution of this thread
+             defer (d) : [n] Defer to thread [n], or the next waiting one
+              eval (e) : [id] evaluate code in the current context [or in thread #id]
+              help (h) : this help
+                ls (l) : [-a] [id] show [all] lexical variables in the current scope [or in thread #id]
+              next (n) : run the next statement
+              quit (q) : terminate the program (exit)
+           threads (t) : [id] show threads being tracked [or just thread #id]
+             where (w) : show a stack trace and the current location in the code
 
 Pressing [enter] by itself on a blank line is the same as `next`.
 
@@ -113,9 +115,9 @@ will currently be evaluated in the context of thread 1 by default.
 ## Multiple Threads
 
 If several threads are stopped at once, a lock is used in order to
-only have one repl at a time.  Threads wait for this lock.  The
-id of the thread will be in the prompt, as shown above.  Other threads'
-positions will also be indicated.
+only have one repl at a time.  Threads wait for this lock.  After
+either continuing or going on to the next statement, another thread
+that is waiting for the lock, may potentially become active in the repl.
 
     ∙ Stopping thread Thread #1 (Initial thread)
 
@@ -146,6 +148,76 @@ The `eval` command can be used to evaluate expression in another thread.  For in
 
 The `ls` command can show lexical variables in another thread.  Note that only variables
 in the innermost lexical scope will be shown.
+
+The `defer` command can be used to switch to another stopped thread.  Here is an example:
+
+### Switching between threads
+
+When multiple threads are stopped, `defer` will switch from one to another.
+For instance, the example below has `eg/defer.raku`, with threads 7-11 stopped,
+as well as thread 1.  After looking at the stack in thread 1, typing `d 8`
+will change to thread 8, and subsequent commands will run in the context
+of that thread.  (also note that if a lot of threads are stopped at the same
+line of code, they are shown in a footnote)
+
+    dawa [1]> w
+
+    --- current stack ---
+      in block <unit> at eg/defer.raku line 16
+
+    -- current location --
+       4 │       │   start {
+       5 │       │     my $x = 10;
+       6 │       │     loop {
+       7 │       │       stop;
+       8 │   (a) │       $x++;
+       9 │       │     }
+      10 │       │   }
+      11 │       │ }
+      12 │       │
+      13 │       │ my $y = 100;
+      14 │       │ loop {
+      15 │       │   stop;
+      16 │  [1]▶ │   say "y is $y";
+      17 │       │   $y += 111;
+      18 │       │   last if $y > 500;
+      19 │       │ }
+      20 │       │
+    ────────────────────────────────────────
+    (a) : [8][9][7][10][11]
+    ────────────────────────────────────────
+
+    dawa [1]> d 8
+      8 ▶       $x++;
+    dawa [8]> w
+
+    --- current stack ---
+      in block  at eg/defer.raku line 8
+
+    -- current location --
+      4 │       │   start {
+      5 │       │     my $x = 10;
+      6 │       │     loop {
+      7 │       │       stop;
+      8 │  (a)▶ │       $x++;
+      9 │       │     }
+     10 │       │   }
+     11 │       │ }
+     12 │       │
+     13 │       │ my $y = 100;
+     14 │       │ loop {
+     15 │       │   stop;
+     16 │   [1] │   say "y is $y";
+     17 │       │   $y += 111;
+     18 │       │   last if $y > 500;
+     19 │       │ }
+     20 │       │
+    ────────────────────────────────────────
+    (a) : [8][9][7][10][11]
+    ────────────────────────────────────────
+
+    dawa [8]> $x
+    10
 
 ## ABOUT THE NAME
 

@@ -71,7 +71,9 @@ method run-repl(:$context,:$stack,:%tracking) {
 }
 
 method stop-thread {
-  put %COLORS<message> ~ "∙ Stopping thread { $*THREAD.gist }" ~ t.text-reset;
+  $!cmd.stdout-lock.protect: {
+    put %COLORS<message> ~ "∙ Stopping thread { $*THREAD.gist }" ~ t.text-reset;
+  }
 }
 
 method breakpoint($file,$line) {

@@ -1,5 +1,6 @@
 use nqp;
 use Dawa::Debugger;
+use Dawa::Exception;
 use QAST:from<NQP>;
 use Terminal::ANSI::OO 't';
 
@@ -42,6 +43,7 @@ sub stop is export is hidden-from-backtrace {
 }
 
 my Lock $repl-lock .= new;
+my atomicint $deferred-to;
 
 sub maybe-stop($context) is hidden-from-backtrace {
   %tracking{ $*THREAD.id } = TrackingState.new(:$context);
@@ -51,8 +53,42 @@ sub maybe-stop($context) is hidden-from-backtrace {
   }
   return unless %debugging{ $*THREAD.id };
   my $stack = Backtrace.new;
-  $repl-lock.protect: {
-    $debugger.run-repl(:$context,:$stack, :%tracking);
+  my $start-repl = True;
+  my $delay = 0;
+  while $start-repl {
+    sleep $delay if $delay > 0;
+    $delay = 0;
+    $start-repl = False;
+    try {
+      # note "waiting for lock in thread { $*THREAD.id }";
+      $repl-lock.protect: {
+        if !$deferred-to or $deferred-to == $*THREAD.id {
+          $debugger.run-repl(:$context,:$stack, :%tracking);
+          $deferred-to = 0;
+        } else {
+          $delay = 1;
+          $start-repl = True;
+        }
+      }
+      CATCH {
+          when Dawa::Exception {
+            given .defer-to -> $n {
+              $deferred-to = $n;
+              when $n == $*THREAD.id {
+                $start-repl = True;
+              }
+              default {
+                # note "{$*THREAD.id} will defer so that thread $n can take this";
+                $start-repl = True;
+                $delay = 1;
+              }
+            }
+         }
+         default {
+            note "error $_"; exit;
+        }
+      }
+    }
   }
   $debugger.update-state(:%debugging);
 };
