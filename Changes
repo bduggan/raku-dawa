@@ -1,3 +1,10 @@
+0.0.6 2022-03-08
+  - Add defer and quit commands.
+  - improve display of threads (footnotes)
+  - fix auth in META.json
+  - update documentation
+  - add a lock for writing to stdout
+
 0.0.5 2022-02-27
   - Try to fix AST problems caused by sink context
   - Add ability to eval in another thread
