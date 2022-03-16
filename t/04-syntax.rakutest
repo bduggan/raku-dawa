@@ -2,7 +2,7 @@ use Test;
 
 use Dawa;
 
-plan 2;
+plan 3;
 
 my %y = ( x => 2 );
 
@@ -19,3 +19,6 @@ await $promise;
 
 is $x, 6, "promise worked";
 
+my %z := { a => 1 }
+
+is %z<a>, 1, 'hash constructor';

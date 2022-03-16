@@ -93,10 +93,17 @@ sub maybe-stop($context) is hidden-from-backtrace {
   $debugger.update-state(:%debugging);
 };
 
+my $Pair := $*W.find_single_symbol('Pair', :setting-only);
+
 sub EXPORT(|) {
   role Dawa {
     method statement(Mu $/) {
       my $inner := callsame;
+      if nqp::istype($inner, QAST::Op)
+         && (nqp::istype($inner.returns, $Pair) || $inner.name eq '&infix:«=>»') {
+            $/.make: $inner;
+            return;
+      }
       my $ast := QAST::Stmts.new(
                     QAST::Op.new( :op('call'), QAST::WVal.new( :value(&maybe-stop) ),
                       # pseudostash:
@@ -107,9 +114,8 @@ sub EXPORT(|) {
                     ),
                      $inner
                 );
-      if nqp::istype($inner,QAST::Op) {
-        $ast.sunk(1) unless $inner.op eq 'callmethod';
-      }
+      $ast.sunk(1) unless $inner.nosink;
+      $ast.nosink( $inner.nosink );
       $/.make: $ast;
     }
   }
