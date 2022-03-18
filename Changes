@@ -1,3 +1,7 @@
+0.0.7 2022-03-18
+  - New s/step command
+  - Add logic to avoid breaking some pair constructors
+
 0.0.6 2022-03-08
   - Add defer and quit commands.
   - improve display of threads (footnotes)
