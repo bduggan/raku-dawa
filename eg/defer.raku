@@ -6,6 +6,8 @@ for 1..5 {
     loop {
       stop;
       $x++;
+      put "x is now $x";
+      put "x is still $x";
     }
   }
 }

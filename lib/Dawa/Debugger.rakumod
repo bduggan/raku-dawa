@@ -66,6 +66,7 @@ method run-repl(:$context,:$stack,:%tracking) {
 
     # anything else
     my $run = $cmd.words[0];
+    $!should-stop = True if $run eq 's'  | 'step';
     $!cmd.run-command($run, $cmd, :$context, :$stack, :%tracking);
   }
 }

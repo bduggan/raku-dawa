@@ -98,6 +98,13 @@ method ls($cmd, :$context!, :%tracking) {
   put ($thread-context // $context).keys.grep({!%hidden{ $_ } }).sort.join(' ');
 }
 
+alias s => 'step';
+cmd step => 'execute the next statement in the same thread';
+method step($cmd, :$context!, :%tracking) {
+  my $de = Dawa::Exception.new(defer-to => $*THREAD.id, :should-continue);
+  $de.throw;
+}
+
 alias h => 'help';
 cmd help => 'this help';
 method help(|args) {
@@ -107,7 +114,7 @@ method help(|args) {
   put "The following commands are available: ";
   my %all-commands = %commands;
   my %all-aliases = %aliases;
-  %all-commands<next> = "run the next statement";
+  %all-commands<next> = "run the next statement in any thread";
   %all-aliases<n> = 'next';
   %all-commands<continue> = "continue execution of this thread";
   push %all-aliases, (c => 'continue');
@@ -124,13 +131,6 @@ method help(|args) {
   put "A blank line (Enter) is equivalent to 'n'.";
   put "Anything else will be evaluated as a Raku expression in the current context.";
   put "";
-}
-
-alias n => 'next';
-cmd next => 'go to next statement';
-method next($cmd,:%extra) {
-  %extra<should-stop> = True;
-  %extra<should-return> = True;
 }
 
 alias w => 'where';
