@@ -73,16 +73,20 @@ command will add a lot of unused extra statements to the AST.
 After `stop` is reached, a repl is started, which has a few
 commands.  Type `h` to see them.  Currently, these are the commands:
 
-             break (b) : [N [filename] ] add a breakpoint at line N [in filename]
-      continue (^D, c) : continue execution of this thread
-             defer (d) : [n] Defer to thread [n], or the next waiting one
-              eval (e) : [id] evaluate code in the current context [or in thread #id]
-              help (h) : this help
-                ls (l) : [-a] [id] show [all] lexical variables in the current scope [or in thread #id]
-              next (n) : run the next statement
-              quit (q) : terminate the program (exit)
-           threads (t) : [id] show threads being tracked [or just thread #id]
-             where (w) : show a stack trace and the current location in the code
+The following commands are available:
+
+
+           break (b) : [N [filename] ] add a breakpoint at line N [in filename]
+    continue (c, ^D) : continue execution of this thread
+           defer (d) : [n] Defer to thread [n], or the next waiting one
+            eval (e) : [id] evaluate code in the current context [or in thread #id]
+            help (h) : this help
+              ls (l) : [-a] [id] show [all] lexical variables in the current scope [or in thread #id]
+            next (n) : run the next statement in any thread
+            quit (q) : terminate the program (exit)
+            step (s) : execute the next statement in the same thread
+         threads (t) : [id] show threads being tracked [or just thread #id]
+           where (w) : show a stack trace and the current location in the code
 
 Pressing [enter] by itself on a blank line is the same as `next`.
 
@@ -117,7 +121,9 @@ will currently be evaluated in the context of thread 1 by default.
 If several threads are stopped at once, a lock is used in order to
 only have one repl at a time.  Threads wait for this lock.  After
 either continuing or going on to the next statement, another thread
-that is waiting for the lock, may potentially become active in the repl.
+that is waiting for the lock may potentially become active in the repl.
+i.e. "next" advances to the next statement in any thread.  To stay in
+the same thread, use "step".
 
     ∙ Stopping thread Thread #1 (Initial thread)
 
