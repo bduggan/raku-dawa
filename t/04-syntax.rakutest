@@ -2,7 +2,7 @@ use Test;
 
 use Dawa;
 
-plan 3;
+plan 4;
 
 my %y = ( x => 2 );
 
@@ -22,3 +22,7 @@ is $x, 6, "promise worked";
 my %z := { a => 1 }
 
 is %z<a>, 1, 'hash constructor';
+
+my @a = (1..3).grep: * > 2;
+ok @a.elems == 1, 'grepped';
+

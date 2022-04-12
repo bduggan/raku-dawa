@@ -101,7 +101,7 @@ sub EXPORT(|) {
     method statement(Mu $/) {
       my $inner := callsame;
       if nqp::istype($inner, QAST::Op)
-         && (nqp::istype($inner.returns, $Pair) || $inner.name eq '&infix:«=>»') {
+      && (nqp::istype($inner.returns, $Pair) || $inner.name eq any( '&infix:«=>»', '&infix:<..>' )) {
             $/.make: $inner;
             return;
       }
