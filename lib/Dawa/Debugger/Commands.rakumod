@@ -16,7 +16,7 @@ my sub cmd(*%kv) { %commands.push: %kv }
 method run-command($cmd, $line, :$context, :$stack, :%tracking) {
   my $actual = %aliases{ $cmd } // $cmd;
   if %commands{ $actual } {
-    self."$actual"($line.subst(/^^ $cmd \s+/,''), :$context, :$stack,:%tracking);
+    self."$actual"($line.subst(/^^ $cmd\s*/,''), :$context, :$stack,:%tracking);
   } else {
     self.eval($line,:$context,:$stack,:%tracking);
   }

@@ -72,7 +72,7 @@ sub maybe-stop($context) is hidden-from-backtrace {
       }
       CATCH {
           when Dawa::Exception {
-            given .defer-to -> $n {
+            with .defer-to -> $n {
               $deferred-to = $n;
               when $n == $*THREAD.id {
                 $start-repl = True unless .should-continue;
