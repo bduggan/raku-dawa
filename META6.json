@@ -11,6 +11,7 @@
     "Dawa": "lib/Dawa.rakumod",
     "Dawa::Exception": "lib/Dawa/Exception.rakumod",
     "Dawa::Debugger": "lib/Dawa/Debugger.rakumod",
+    "Dawa::Helpers": "lib/Dawa/Helpers.rakumod",
     "Dawa::Debugger::Commands": "lib/Dawa/Debugger/Commands.rakumod"
   },
   "repo-type": "git",

@@ -2,6 +2,7 @@ unit class Dawa::Debugger;
 
 use Terminal::ANSI::OO 't';
 use Dawa::Debugger::Commands;
+use Dawa::Helpers;
 use Readline;
 
 my $history-file = %*ENV<DAWA_HISTORY_FILE> // $*HOME.child('.dawa-history');
@@ -10,7 +11,7 @@ $r.using-history;
 $r.read-history("$history-file") if $history-file.e;
 
 my %COLORS =
-  message => t.bright-green;
+  message => t.green;
 
 has Bool $.should-stop = False;
 has $!first = True;
@@ -20,22 +21,46 @@ method update-state(:%debugging) {
   %debugging{ $*THREAD.id } = $!should-stop;
 }
 
-sub show-line($stack) {
+sub show-line($stack, :%snippets) {
   my $frame = $stack.first: { !.is-setting && !.is-hidden }
   my $file = $frame.file.subst(/' ' '(' <-[(]>+ ')' \s* $$/,'');
   my $line = $frame.line;
-  my $text = $file.IO.lines[$line - 1] // return;
-  put ($line).fmt("{t.bright-yellow}%3d ▶") ~ " $text" ~ t.text-reset;
+  unless $file.IO.e {
+    note "could not open $file";
+    return;
+  }
+  my @snippets = find-snippets( :$line, :$file, :%snippets);
+  my $min = @snippets».from-line.min;
+  my $max = @snippets».to-line.max;
+
+  for $min - 4 .. $min - 1 {
+    next unless $_ >= 0;
+    my $text = $file.IO.lines[$_ - 1] // last;
+    put ($_).fmt("%3d      │ ") ~ " $text";
+  }
+  for $min .. $max -> $line {
+    my $text = $file.IO.lines[$line - 1] // "<missing>";
+    my $count = @snippets.grep({ .from-line <= $line <= .to-line }).elems;
+    my $symbol = '▷' x $count;
+    if $symbol.chars > 4 {
+      $symbol = '■';
+    }
+    put ($line).fmt("{t.cyan}%3d {$symbol.fmt('%-4s')} │ ") ~ " $text" ~ t.text-reset;
+  }
+  for $max + 1 .. $max + 3 {
+    my $text = $file.IO.lines[$_ - 1] // last;
+    put ($_).fmt("%3d      │ ") ~ " $text";
+  }
 }
 
 my $said-help;
 
-method run-repl(:$context,:$stack,:%tracking) {
+method run-repl(:$context,:$stack,:%tracking,:%snippets) {
   if $!first {
-    $!cmd.run-command("where","where",:$stack,:$context,:%tracking);
+    $!cmd.run-command("where","where",:$stack,:$context,:%tracking,:%snippets);
     $!first = False;
   } else {
-    show-line($stack);
+    show-line($stack, :%snippets);
   }
   say %COLORS<message> ~ "Type h for help" ~ t.text-reset unless $said-help++;
   loop {
@@ -48,8 +73,13 @@ method run-repl(:$context,:$stack,:%tracking) {
         return;
     }
 
-    # Enter (next)
-    if $cmd.chars == 0 || $cmd eq <n next>.any {
+    # Enter
+    if $cmd.chars == 0 {
+        note "no command, type h for help";
+        redo;
+    }
+
+    if $cmd eq <n next>.any {
         $!should-stop = True;
         return;
     }
@@ -66,8 +96,8 @@ method run-repl(:$context,:$stack,:%tracking) {
 
     # anything else
     my $run = $cmd.words[0];
-    $!should-stop = True if $run eq 's'  | 'step';
-    $!cmd.run-command($run, $cmd, :$context, :$stack, :%tracking);
+    $!should-stop = True if $run eq 's' | 'step';
+    $!cmd.run-command($run, $cmd, :$context, :$stack, :%tracking,:%snippets);
   }
 }
 

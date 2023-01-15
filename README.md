@@ -21,14 +21,15 @@ Then:
     ∙ Stopping thread Thread #1 (Initial thread)
 
     --- current stack ---
-      in block <unit> at eg/example.raku line 6
+      in block <unit> at eg/example.raku line 5
 
     -- current location --
+      1 │       │     use Dawa;
       2 │       │
       3 │       │     my $x = 100;
       4 │       │     $x = $x + 1;
-      5 │       │     stop;
-      6 │  [1]▶ │     $x = $x + 10000;
+      5 │  [1]▶ │     stop;
+      6 │       │     $x = $x + 10000;
       7 │       │     $x++;
       8 │       │     $x++;
       9 │       │     $x++;
@@ -38,35 +39,49 @@ Then:
     dawa [1]> $x
     101
     dawa [1]> n
-      7 ▶     $x++;
+      2      │
+      3      │      my $x = 100;
+      4      │      $x = $x + 1;
+      5      │      stop;
+      6 ▷    │      $x = $x + 10000;
+      7      │      $x++;
+      8      │      $x++;
+      9      │      $x++;
     dawa [1]> $x
     10101
-    dawa [1]> n
-      8 ▶     $x++;
-    dawa [1]> $x
-    10102
-    dawa [1]> c
+    dawa [1]>
 
-In the example above `[1]▶` indicates that this is the next
-statement that will be executed by thread 1.  After advancing
-one statement (with `n`), the statement that has not yet been
-executed (and is coming up next) will be shown.
+In the example above `[1]▶` indicates that this is the most
+recent statement that was executed on thread 1.
+
+After typing "n", the `▷` indicates the statement that
+was just executed.
+
+Continue typing "n", and statements will continue to
+be executed.
+
+A command line program, `dawa`, will run a program and
+stop after running a statement on the first line.
 
 ## DESCRIPTION
 
-Dawa provides functionality that is inspired by
-Ruby's [pry](https://github.com/pry/pry) and Python's
-[import pdb; pdb.set_trace()](https://docs.python.org/3/library/pdb.html)
-idiom.
+Dawa is a run-time debugger for Raku programs.
 
 It exports one subroutine: `stop`, which will pause
 execution of the current thread of the program, and
 allow for introspecting the stack, and stepping through
-subsequent statements.
+subsequent statements.  It also supports debugging of
+multi-threaded programs.
 
-Using this module is heavy-handed -- currently just the `use`
-command will add a lot of unused extra statements to the AST.
-(This implementation may change in the future.)
+Importing `Dawa` adds extra ops to the AST that is
+generated during compilation.  Specifically, it adds
+at most one extra node per line.  There is a significant
+perforance penalty for this, as well as a risk that your
+program will break.  Patches welcome!
+
+The functionality of `dawa` is inspired by
+Ruby's [pry](https://github.com/pry/pry) and Python's
+[pdb](https://docs.python.org/3/library/pdb.html).
 
 ## USAGE
 
@@ -138,8 +153,8 @@ the same thread, use "step".
        7 │   [7] │   $i++;
        8 │       │ }
        9 │       │
-      10 │       │ stop;
-      11 │  [1]▶ │ say 'bye!';
+      10 │  [1]▶ │ stop;
+      11 │       │ say 'bye!';
       12 │       │
 
     Type h for help

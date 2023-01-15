@@ -13,8 +13,10 @@ my $promise = start loop {
 
 say $promise.WHAT;
 
+say DateTime.now;
 say "waiting";
 await $promise;
+say DateTime.now;
 say "done";
 
 

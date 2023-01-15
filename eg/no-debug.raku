@@ -1,14 +1,8 @@
 #!/usr/bin/env raku
 
-use Dawa;
-
 say "one";
 say "two";
 my $x = 99;
-
-stop;
-
-my $y = 100;
 
 say "three";
 say "four";

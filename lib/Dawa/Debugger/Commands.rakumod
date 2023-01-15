@@ -2,6 +2,7 @@
 unit class Dawa::Debugger::Commands;
 use Terminal::ANSI::OO 't';
 use Dawa::Exception;
+use Dawa::Helpers;
 
 has Lock $.stdout-lock .= new;
 
@@ -13,8 +14,9 @@ my %commands;
 my sub alias(*%kv) { %aliases.push: %kv }
 my sub cmd(*%kv) { %commands.push: %kv }
 
-method run-command($cmd, $line, :$context, :$stack, :%tracking) {
+method run-command($cmd, $line, :$context, :$stack, :%tracking,:%snippets) {
   my $actual = %aliases{ $cmd } // $cmd;
+  my %*snippets = %snippets;
   if %commands{ $actual } {
     self."$actual"($line.subst(/^^ $cmd\s*/,''), :$context, :$stack,:%tracking);
   } else {
@@ -72,7 +74,7 @@ method eval($str!,:$context!,:$stack,:%tracking) {
     }
   }
   try {
-    put ( EVAL ($thread-eval // $str), :context( $thread-context // $context) ).raku;
+    put ( EVAL ($thread-eval // $str), :context( $thread-context // $context) );
     CATCH {
       default {
         put $_;
@@ -124,11 +126,10 @@ method help(|args) {
     with %lookup{ $key }.?join(', ') {
       $key ~= " ($_)";
     }
-    put t.bright-yellow ~ $key.fmt('%20s') ~ t.white ~ ' : ' ~ t.bright-green ~ $value ~ t.text-reset;
+    put t.yellow ~ $key.fmt('%20s') ~ t.white ~ ' : ' ~ t.green ~ $value ~ t.text-reset;
   }
 
   put "";
-  put "A blank line (Enter) is equivalent to 'n'.";
   put "Anything else will be evaluated as a Raku expression in the current context.";
   put "";
 }
@@ -138,6 +139,13 @@ cmd where => 'show a stack trace and the current location in the code';
 method where($cmd,:$context!,:stack($b)!,:%tracking) {
   my %colors;
   my %leaders;
+
+  my @snippets = find-snippets(
+      line => %tracking{ $*THREAD.id }.line, 
+      file => %tracking{ $*THREAD.id }.file, 
+      :%*snippets
+  );
+
   for %.breakpoints.keys -> $file {
     for %.breakpoints{ $file }.keys -> $line {
       %colors{ $file }{ $line } //= t.bright-magenta;
@@ -155,7 +163,7 @@ method where($cmd,:$context!,:stack($b)!,:%tracking) {
   my $file = $frame.file.subst(/' ' '(' <-[(]>+ ')' \s* $$/,'');
   my %indicators;
   %indicators{ $file }{ $frame.line } ~= '▶';
-  %colors{ $file }{ $frame.line } = t.bright-yellow;
+  %colors{ $file }{ $frame.line } = t.yellow;
   $.stdout-lock.protect: {
     put "\n--- current stack --- ";
     put $b.Str;

@@ -1,0 +1,13 @@
+#!/usr/bin/env raku
+
+unit sub MAIN($file, :$compile-only = False);
+
+my $lib = $?FILE.IO.resolve.parent.parent.child('lib').resolve.Str;
+
+if $compile-only {
+  shell "raku -c -I$lib -MDawa $file";
+  exit;
+}
+
+shell "DAWA_STOP=1 raku -I$lib -MDawa $file";
+
