@@ -107,7 +107,6 @@ sub maybe-stop($context) is hidden-from-backtrace {
               $deferred-to = $n;
               when $n == $*THREAD.id {
                 $start-repl = True unless .should-continue;
-                note "and start-repl is " ~ $start-repl.raku;
               }
               default {
                 # note "{$*THREAD.id} will defer so that thread $n can take this";
