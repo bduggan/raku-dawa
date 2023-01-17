@@ -2,9 +2,17 @@
 
 Dawa -- A runtime debugger for Raku programs
 
-## SYNOPSIS
+## EXAMPLES
 
-<img width="570" alt="dawa-2" src="https://user-images.githubusercontent.com/58956/212915084-05cfc734-2ec7-4eb5-9a0d-dc17cbed7fce.png">
+Use from the command line with the `dawa` command:
+
+<img width="558" alt="dawa-2" src="https://user-images.githubusercontent.com/58956/212915084-05cfc734-2ec7-4eb5-9a0d-dc17cbed7fce.png">
+
+Use from within a program with the `stop` statement:
+
+<img width="558" alt="dawa-1" src="https://user-images.githubusercontent.com/58956/212917285-f34269fe-a4ba-4128-ba28-30ec56b74c0e.png">
+
+## SYNOPSIS
 
 In example.raku:
 
