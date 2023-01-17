@@ -98,9 +98,6 @@ Ruby's [pry](https://github.com/pry/pry) and Python's
 After `stop` is reached, a repl is started, which has a few
 commands.  Type `h` to see them.  Currently, these are the commands:
 
-The following commands are available:
-
-
            break (b) : [N [filename] ] add a breakpoint at line N [in filename]
     continue (c, ^D) : continue execution of this thread
            defer (d) : [n] Defer to thread [n], or the next waiting one
@@ -112,8 +109,6 @@ The following commands are available:
             step (s) : execute the next statement in the same thread
          threads (t) : [id] show threads being tracked [or just thread #id]
            where (w) : show a stack trace and the current location in the code
-
-Pressing [enter] by itself on a blank line is the same as `next`.
 
 Anything else is treated as a Raku statement: it will be evaluated,
 the result will be shown.
