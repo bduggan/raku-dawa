@@ -6,7 +6,7 @@ Dawa -- A runtime debugger for Raku programs
 
 Use from the command line with the `dawa` command:
 
-<img width="558" alt="dawa-2" src="https://user-images.githubusercontent.com/58956/212915084-05cfc734-2ec7-4eb5-9a0d-dc17cbed7fce.png">
+<img width="509" alt="dawa-2" src="https://user-images.githubusercontent.com/58956/212915084-05cfc734-2ec7-4eb5-9a0d-dc17cbed7fce.png">
 
 Use from within a program with the `stop` statement:
 
