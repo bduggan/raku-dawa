@@ -131,10 +131,21 @@ Breakpoints can be set with `b`, for example:
       17 │       │
 
 As shown above, breakpoints are indicated using `■` and are not
-thread-specific.  The triangle (▶) is the next line of code that
-will be executed.  The `[1]` indicates the next statement to be executed
-by thread 1.  The `[1]` in the prompt indicates that statements
-will currently be evaluated in the context of thread 1 by default.
+thread-specific.  The triangle (▶) is the line of code that
+was just executed.  The `[1]` indicates that this is thread 1.
+The `[1]` in the prompt indicates that statements will currently
+be evaluated in the context of thread 1 by default.
+
+## Details of "next"
+
+In Raku, there can be multiple statements per line, and multiple
+"statements" within a statement, which makes it tricky to debug a
+program by stepping through "statements" or stepping through "lines".
+Dawa has a number of heuristics for when to stop, but the idea is to
+stop at most once per line and at most once per statement.  Typing "n"
+may sometimes stay within the same block of code, if a statement containing
+other statements spans several lines.  The display will indicate
+the block of code containing the statement that was just executed.
 
 ## Multiple Threads
 
