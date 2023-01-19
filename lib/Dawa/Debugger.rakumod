@@ -15,7 +15,7 @@ my %COLORS =
 
 has Bool $.should-stop = False;
 has $!first = True;
-has $.cmd = Dawa::Debugger::Commands.new;
+has $.cmd handles <set-breakpoint> = Dawa::Debugger::Commands.new;
 
 method update-state(:%debugging) {
   %debugging{ $*THREAD.id } = $!should-stop;

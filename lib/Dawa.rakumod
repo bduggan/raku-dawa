@@ -62,6 +62,7 @@ class TrackingState {
 }
 
 sub stop is export is hidden-from-backtrace {
+  $debugger.set-breakpoint(callframe(1).file,callframe(1).line, 'stop');
   $debugger.stop-thread;
   %debugging{ $*THREAD.id } = True;
   my $tracking = TrackingState.new;
@@ -73,6 +74,7 @@ my atomicint $deferred-to;
 
 my $stopped-once = False;
 sub maybe-stop($context, $file, $line) is hidden-from-backtrace {
+  my $snippet = %snippets{$file}{$line};
   stop if %*ENV<DAWA_STOP> && !$stopped-once;
   $stopped-once = True;
   my $tracking = TrackingState.new(:$context);

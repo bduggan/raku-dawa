@@ -180,9 +180,14 @@ method break($cmd, :$context, :$stack) {
     note "missing line number for breakpoint";
     return;
   }
-  %.breakpoints{ $file }{ $line } = True;
+  self.set-breakpoint( $file, $line, "break");
   say "Added breakpoint at line $line in $file";
 }
+
+method set-breakpoint($file,$line,$kind) {
+  %.breakpoints{ $file.IO.resolve }{ $line } = $kind;
+}
+
 
 sub show-file(Str $file, Int $line, :%colors, :%leaders, :%indicators) {
   put "-- current location --";
