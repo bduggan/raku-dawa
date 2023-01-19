@@ -210,12 +210,9 @@ Since this relies on undocumented behavior, it could break at any time.  Modifyi
 the AST may also cause your program to behave in unexpected ways.  It may be
 possible to improve this once the AST work in Raku is available.
 
-The `stop` routine won't work if it is the last statement in a file.
+## MAILING LIST
 
-There are probably other bugs -- let me know and send a patch!  Also
-a mailing list is available to discuss features and send patches:
-
-  https://lists.sr.ht/~bduggan/raku-dawa
+https://lists.sr.ht/~bduggan/raku-dawa
 
 ## AUTHOR
 
