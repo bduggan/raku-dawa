@@ -72,7 +72,7 @@ my Lock $repl-lock .= new;
 my atomicint $deferred-to;
 
 my $stopped-once = False;
-sub maybe-stop($context) is hidden-from-backtrace {
+sub maybe-stop($context, $file, $line) is hidden-from-backtrace {
   stop if %*ENV<DAWA_STOP> && !$stopped-once;
   $stopped-once = True;
   my $tracking = TrackingState.new(:$context);
@@ -94,7 +94,7 @@ sub maybe-stop($context) is hidden-from-backtrace {
       # note "waiting for lock in thread { $*THREAD.id }";
       $repl-lock.protect: {
         if !$deferred-to or $deferred-to == $*THREAD.id {
-          $debugger.run-repl(:$context,:$stack, :%tracking, :%snippets);
+          $debugger.run-repl(:$context, :$stack, :%tracking, :%snippets, :$file, :$line);
           $deferred-to = 0;
         } else {
           $delay = 1;
@@ -151,16 +151,19 @@ sub EXPORT(|) {
       %snippets{ $file }{ $line-number } = Snippet.new: :$line-text, from => $/.from, to => $/.to, orig => $/.orig.Str;
       %added-lines{ $file }{ $line-number } = True;
       my $ast := QAST::Stmts.new(
-                    :resultchild(0),
+                    :resultchild(1),
                     :returns($inner.returns),
-                    $inner,
                     QAST::Op.new( :op('call'), QAST::WVal.new( :value(&maybe-stop) ),
                       # pseudostash:
                       QAST::Op.new(
                          :op('callmethod'), :name('new'),
                          QAST::WVal.new( :value($*W.find_single_symbol('PseudoStash')))
-                      )
-                    )
+                      ),
+                      # also pass snippet index as an argument
+                      QAST::SVal.new(:value($file)),
+                      QAST::IVal.new(:value($line-number)),
+                    ),
+                    $inner
                 );
       $/.make: $ast;
     }

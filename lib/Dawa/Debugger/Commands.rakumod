@@ -14,13 +14,13 @@ my %commands;
 my sub alias(*%kv) { %aliases.push: %kv }
 my sub cmd(*%kv) { %commands.push: %kv }
 
-method run-command($cmd, $line, :$context, :$stack, :%tracking,:%snippets) {
+method run-command($cmd, $cmd-line, :$context, :$stack, :%tracking,:%snippets, :$file, :$line) {
   my $actual = %aliases{ $cmd } // $cmd;
   my %*snippets = %snippets;
   if %commands{ $actual } {
-    self."$actual"($line.subst(/^^ $cmd\s*/,''), :$context, :$stack,:%tracking);
+    self."$actual"($cmd-line.subst(/^^ $cmd\s*/,''), :$context, :$stack,:%tracking, :$file, :$line);
   } else {
-    self.eval($line,:$context,:$stack,:%tracking);
+    self.eval($cmd-line,:$context,:$stack,:%tracking);
   }
 }
 
@@ -136,20 +136,16 @@ method help(|args) {
 
 alias w => 'where';
 cmd where => 'show a stack trace and the current location in the code';
-method where($cmd,:$context!,:stack($b)!,:%tracking) {
+method where($cmd,:$context!,:stack($b)!,:%tracking, :$file, :$line) {
   my %colors;
   my %leaders;
 
-  my @snippets = find-snippets(
-      line => %tracking{ $*THREAD.id }.line, 
-      file => %tracking{ $*THREAD.id }.file, 
-      :%*snippets
-  );
+  my $snip = %*snippets{ $file }{ $line };
 
-  for %.breakpoints.keys -> $file {
-    for %.breakpoints{ $file }.keys -> $line {
-      %colors{ $file }{ $line } //= t.bright-magenta;
-      %leaders{ $file }{ $line } //= '■';
+  for %.breakpoints.keys -> $f {
+    for %.breakpoints{ $f }.keys -> $line {
+      %colors{ $f }{ $line } //= t.bright-magenta;
+      %leaders{ $f }{ $line } //= '■';
     }
   }
   for %tracking.kv -> $k, $v {
@@ -160,14 +156,15 @@ method where($cmd,:$context!,:stack($b)!,:%tracking) {
   my $frame = @$b.first: {
     !.is-setting && !.is-hidden && .file ne $?FILE
   }
-  my $file = $frame.file.subst(/' ' '(' <-[(]>+ ')' \s* $$/,'');
   my %indicators;
-  %indicators{ $file }{ $frame.line } ~= '▶';
-  %colors{ $file }{ $frame.line } = t.yellow;
+  for $snip.from-line .. $snip.to-line {
+    %indicators{ $file }{ $_ } ~= '▶';
+    %colors{ $file }{ $_ } = t.yellow;
+  }
   $.stdout-lock.protect: {
     put "\n--- current stack --- ";
     put $b.Str;
-    show-file($file, $frame.line, :%colors, :%leaders, :%indicators);
+    show-file($file, $line, :%colors, :%leaders, :%indicators);
   }
 }
 

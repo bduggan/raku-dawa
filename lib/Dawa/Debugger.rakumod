@@ -21,17 +21,14 @@ method update-state(:%debugging) {
   %debugging{ $*THREAD.id } = $!should-stop;
 }
 
-sub show-line($stack, :%snippets) {
-  my $frame = $stack.first: { !.is-setting && !.is-hidden }
-  my $file = $frame.file.subst(/' ' '(' <-[(]>+ ')' \s* $$/,'');
-  my $line = $frame.line;
+sub show-line($stack, :%snippets, :$file, :$line) {
   unless $file.IO.e {
     note "could not open $file";
     return;
   }
-  my @snippets = find-snippets( :$line, :$file, :%snippets);
-  my $min = @snippets».from-line.min;
-  my $max = @snippets».to-line.max;
+  my $snip = %snippets{ $file }{ $line };
+  my $min = $snip.from-line;
+  my $max = $snip.to-line;
 
   for $min - 4 .. $min - 1 {
     next unless $_ >= 0;
@@ -40,11 +37,7 @@ sub show-line($stack, :%snippets) {
   }
   for $min .. $max -> $line {
     my $text = $file.IO.lines[$line - 1] // "<missing>";
-    my $count = @snippets.grep({ .from-line <= $line <= .to-line }).elems;
-    my $symbol = '▷' x $count;
-    if $symbol.chars > 4 {
-      $symbol = '■';
-    }
+    my $symbol = '▷';
     put ($line).fmt("{t.cyan}%3d {$symbol.fmt('%-4s')} │ ") ~ " $text" ~ t.text-reset;
   }
   for $max + 1 .. $max + 3 {
@@ -55,12 +48,12 @@ sub show-line($stack, :%snippets) {
 
 my $said-help;
 
-method run-repl(:$context,:$stack,:%tracking,:%snippets) {
+method run-repl(:$context,:$stack,:%tracking,:%snippets, :$file, :$line) {
   if $!first {
-    $!cmd.run-command("where","where",:$stack,:$context,:%tracking,:%snippets);
+    $!cmd.run-command("where","where",:$stack,:$context,:%tracking,:%snippets, :$file, :$line);
     $!first = False;
   } else {
-    show-line($stack, :%snippets);
+    show-line($stack, :%snippets, :$file, :$line);
   }
   say %COLORS<message> ~ "Type h for help" ~ t.text-reset unless $said-help++;
   loop {
@@ -97,7 +90,7 @@ method run-repl(:$context,:$stack,:%tracking,:%snippets) {
     # anything else
     my $run = $cmd.words[0];
     $!should-stop = True if $run eq 's' | 'step';
-    $!cmd.run-command($run, $cmd, :$context, :$stack, :%tracking,:%snippets);
+    $!cmd.run-command($run, $cmd, :$context, :$stack, :%tracking, :%snippets, :$file, :$line);
   }
 }
 
