@@ -6,66 +6,19 @@ Dawa -- A runtime debugger for Raku programs
 
 Use from the command line with the `dawa` command:
 
-<img width="509" alt="dawa-2" src="https://user-images.githubusercontent.com/58956/212915084-05cfc734-2ec7-4eb5-9a0d-dc17cbed7fce.png">
+![image](https://user-images.githubusercontent.com/58956/213559772-15101247-a7f6-4e45-9b3e-2954f2b7cf90.png)
 
 Use from within a program with the `stop` statement:
 
-<img width="558" alt="dawa-1" src="https://user-images.githubusercontent.com/58956/212917285-f34269fe-a4ba-4128-ba28-30ec56b74c0e.png">
+![image](https://user-images.githubusercontent.com/58956/213560033-dfce1bb2-0924-4169-b498-3c5920cf2660.png)
 
 ## SYNOPSIS
 
-In example.raku:
+In the example above `[1]▶` indicates that this is the next
+statement that will be executed on thread 1.
 
-    use Dawa;
-
-    my $x = 100;
-    $x = $x + 1;
-    stop;
-    $x = $x + 10000;
-    $x++;
-    $x++;
-    $x++;
-
-Then:
-
-    ∙ Stopping thread Thread #1 (Initial thread)
-
-    --- current stack ---
-      in block <unit> at eg/example.raku line 5
-
-    -- current location --
-      1 │       │     use Dawa;
-      2 │       │
-      3 │       │     my $x = 100;
-      4 │       │     $x = $x + 1;
-      5 │  [1]▶ │     stop;
-      6 │       │     $x = $x + 10000;
-      7 │       │     $x++;
-      8 │       │     $x++;
-      9 │       │     $x++;
-     10 │       │
-
-    Type h for help
-    dawa [1]> $x
-    101
-    dawa [1]> n
-      2      │
-      3      │      my $x = 100;
-      4      │      $x = $x + 1;
-      5      │      stop;
-      6 ▷    │      $x = $x + 10000;
-      7      │      $x++;
-      8      │      $x++;
-      9      │      $x++;
-    dawa [1]> $x
-    10101
-    dawa [1]>
-
-In the example above `[1]▶` indicates that this is the most
-recent statement that was executed on thread 1.
-
-After typing "n", the `▷` indicates the statement that
-was just executed.
+After typing "n", the `▷` indicates the next statement that
+will be executed.
 
 Continue typing "n", and statements will continue to
 be executed.
@@ -132,7 +85,7 @@ Breakpoints can be set with `b`, for example:
 
 As shown above, breakpoints are indicated using `■` and are not
 thread-specific.  The triangle (▶) is the line of code that
-was just executed.  The `[1]` indicates that this is thread 1.
+will be executed next.  The `[1]` indicates that this is thread 1.
 The `[1]` in the prompt indicates that statements will currently
 be evaluated in the context of thread 1 by default.
 
@@ -145,7 +98,7 @@ Dawa has a number of heuristics for when to stop, but the idea is to
 stop at most once per line and at most once per statement.  Typing "n"
 may sometimes stay within the same block of code, if a statement containing
 other statements spans several lines.  The display will indicate
-the block of code containing the statement that was just executed.
+the block of code containing the statement that will be executed.
 
 ## Multiple Threads
 
