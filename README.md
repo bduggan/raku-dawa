@@ -2,7 +2,7 @@
 
 Dawa -- A runtime debugger for Raku programs
 
-## EXAMPLES
+## SYNPOSIS
 
 Use from the command line with the `dawa` command:
 
@@ -11,20 +11,6 @@ Use from the command line with the `dawa` command:
 Use from within a program with the `stop` statement:
 
 ![image](https://user-images.githubusercontent.com/58956/213560033-dfce1bb2-0924-4169-b498-3c5920cf2660.png)
-
-## SYNOPSIS
-
-In the example above `[1]▶` indicates that this is the next
-statement that will be executed on thread 1.
-
-After typing "n", the `▷` indicates the next statement that
-will be executed.
-
-Continue typing "n", and statements will continue to
-be executed.
-
-A command line program, `dawa`, will run a program and
-stop after running a statement on the first line.
 
 ## DESCRIPTION
 
@@ -72,16 +58,6 @@ Breakpoints can be set with `b`, for example:
 
       dawa [1]> b 13
       Added breakpoint at line 13 in eg/debug.raku
-      dawa [1]> w
-
-      10 │       │
-      11 │  [1]▶ │ say "three";
-      12 │       │ say "four";
-      13 │     ■ │ $x = $x + 11;
-      14 │       │ say "five";
-      15 │       │ say "x is $x";
-      16 │       │ say "bye";
-      17 │       │
 
 As shown above, breakpoints are indicated using `■` and are not
 thread-specific.  The triangle (▶) is the line of code that
