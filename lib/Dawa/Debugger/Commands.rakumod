@@ -150,8 +150,8 @@ method where($cmd,:$context!,:stack($b)!,:%tracking, :$file, :$line) {
   }
   for %tracking.kv -> $k, $v {
     %colors{ $v.file }{ $v.line } //= t.color('#FFA500');
-    %leaders{ $v.file }{ $v.line } //= '';
-    %leaders{ $v.file }{ $v.line } ~= "[$k]";
+    %leaders{ $v.file.IO.resolve }{ $v.line } //= '';
+    %leaders{ $v.file.IO.resolve }{ $v.line } ~= "[$k]";
   }
   my $frame = @$b.first: {
     !.is-setting && !.is-hidden && .file ne $?FILE
