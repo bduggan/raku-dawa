@@ -74,7 +74,7 @@ method eval($str!,:$context!,:$stack,:%tracking) {
     }
   }
   try {
-    put ( EVAL ($thread-eval // $str), :context( $thread-context // $context) );
+    put .gist given ( EVAL ($thread-eval // $str), :context( $thread-context // $context) );
     CATCH {
       default {
         put $_;
