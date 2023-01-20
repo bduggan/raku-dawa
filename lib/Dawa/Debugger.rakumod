@@ -101,7 +101,7 @@ method stop-thread {
 }
 
 method breakpoint($file,$line) {
-  with $!cmd.breakpoints{ $file }{ $line } -> $how {
+  with $!cmd.breakpoints{ $file.IO.resolve }{ $line } -> $how {
     return $how eq 'break';
   }
   return False;
