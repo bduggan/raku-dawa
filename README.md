@@ -1,3 +1,6 @@
+ [![Actions Status](https://github.com/bduggan/raku-dawa/actions/workflows/linux.yml/badge.svg)](https://github.com/bduggan/raku-dawa/actions/workflows/linux.yml)
+ [![Actions Status](https://github.com/bduggan/raku-dawa/actions/workflows/macos.yml/badge.svg)](https://github.com/bduggan/raku-dawa/actions/workflows/macos.yml)
+
 ## NAME
 
 Dawa -- A runtime debugger for Raku programs
