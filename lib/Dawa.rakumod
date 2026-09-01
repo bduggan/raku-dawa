@@ -1,4 +1,5 @@
 use nqp;
+use experimental :rakuast;
 use Dawa::Debugger;
 use Dawa::Exception;
 use QAST:from<NQP>;
@@ -128,48 +129,93 @@ sub maybe-stop($context, $file, $line) is hidden-from-backtrace {
 
 my %added-lines;
 
-sub EXPORT(|) {
-  role Dawa {
-    method statement(Mu $/) {
-      callsame;
-      return if %debugging{ $*THREAD.id };
-      my $inner := $/.made;
-      my $file = $*W.current_file.IO.resolve;
-      my $line-text = substr($/.orig,$/.from,$/.to - $/.from);
-      my $line-number = substr($/.orig,0,$/.from).comb.grep("\n").elems + 1;
-      if %added-lines{ $file }{ $line-number } {
-        return
-      }
-      return if $inner.^name eq 'NQPMu';
-      return if $inner.^name ne 'QAST::Op';
-      return if $inner.op eq 'while';
-      my $prev := substr($/.orig,0,$/.from);
-      my $ok = so $prev ~~ / [ \n | ^ ] \s* $/;
-      return unless $ok;
-      return if $inner.op eq 'call' && $inner.name eq '&await';
+# is this a stop point?
+my sub stop-point(Mu $/, IO::Path $file) {
+  return Nil if %debugging{ $*THREAD.id };
+  my $line-text   = substr($/.orig, $/.from, $/.to - $/.from);
+  my $line-number = substr($/.orig, 0, $/.from).comb.grep("\n").elems + 1;
+  return Nil if %added-lines{ $file }{ $line-number };
+  # only instrument statements that begin at the start of a line
+  return Nil unless so substr($/.orig, 0, $/.from) ~~ / [ \n | ^ ] \s* $ /;
+  # stopping right before an await deadlocks the debugger REPL against it
+  return Nil if $line-text.trim ~~ / ^ 'await' >> /;
+  %snippets{ $file }{ $line-number } = Snippet.new:
+    :$line-text, from => $/.from, to => $/.to, orig => $/.orig.Str;
+  %added-lines{ $file }{ $line-number } = True;
+  $line-number;
+}
 
-      # a Pair inside a block becomes a hash, a list of statements turns it into a block
-      return if $inner.returns.isa(Pair);
-      %snippets{ $file }{ $line-number } = Snippet.new: :$line-text, from => $/.from, to => $/.to, orig => $/.orig.Str;
-      %added-lines{ $file }{ $line-number } = True;
-      my $ast := QAST::Stmts.new(
-                    :resultchild(1),
-                    :returns($inner.returns),
-                    QAST::Op.new( :op('call'), QAST::WVal.new( :value(&maybe-stop) ),
-                      # pseudostash:
-                      QAST::Op.new(
-                         :op('callmethod'), :name('new'),
-                         QAST::WVal.new( :value($*W.find_single_symbol('PseudoStash')))
-                      ),
-                      # also pass snippet index as an argument
-                      QAST::SVal.new(:value($file)),
-                      QAST::IVal.new(:value($line-number)),
-                    ),
-                    $inner
-                );
-      $/.make: $ast;
+# `$target(@args)` (or `$target.$method(@args)` with :method) in RakuAST
+my sub rakuast-call(Mu $target, *@args, Str :$method) {
+  my $operand = $target ~~ RakuAST::Node ?? $target !! RakuAST::Literal.from-value($target);
+  my $postfix = $method
+    ?? RakuAST::Call::Method.new(
+         name => RakuAST::Name.from-identifier($method),
+         args => RakuAST::ArgList.new(|@args))
+    !! RakuAST::Call::Term.new(args => RakuAST::ArgList.new(|@args));
+  RakuAST::ApplyPostfix.new(:$operand, :$postfix)
+}
+
+# Actions mixin for the legacy (QAST) frontend: rewrite each eligible statement
+# into  Stmts( maybe-stop(PseudoStash.new, $file, $line); <original statement> ).
+my role LegacyActions {
+  method statement(Mu $/) {
+    callsame;
+    my $inner := $/.made;
+    return if $inner.^name eq 'NQPMu';
+    return if $inner.^name ne 'QAST::Op';
+    return if $inner.op eq 'while';
+    return if $inner.op eq 'call' && $inner.name eq '&await';
+    # a Pair inside a block becomes a hash, a list of statements turns it into a block
+    return if $inner.returns.isa(Pair);
+
+    my $file = $*W.current_file.IO.resolve;
+    with stop-point($/, $file) -> $line {
+      $/.make: QAST::Stmts.new(
+        :resultchild(1),
+        :returns($inner.returns),
+        QAST::Op.new( :op('call'), QAST::WVal.new( :value(&maybe-stop) ),
+          # pseudostash: caller's lexical scope, for the REPL
+          QAST::Op.new( :op('callmethod'), :name('new'),
+            QAST::WVal.new( :value(PseudoStash) ),
+          ),
+          QAST::SVal.new( :value($file) ),
+          QAST::IVal.new( :value($line) ),
+        ),
+        $inner,
+      );
     }
   }
-  $*LANG.define_slang: 'MAIN', $*LANG.slang_grammar('MAIN'), $*LANG.actions.^mixin(Dawa);
-  {}
 }
+
+# Actions mixin for the RakuAST frontend.
+my role Actions {
+  method statement(Mu $/) {
+    callsame;
+    my $made := $/.made;
+    return unless nqp::istype($made, RakuAST::Statement::Expression);
+    my $expr := $made.expression;
+    return without $expr;
+    # a bare fat-arrow statement is hash-vs-block disambiguation; leave it alone
+    return if nqp::istype($expr, RakuAST::FatArrow);
+
+    my $file = $*ORIGIN-SOURCE.original-file.IO.resolve;
+    with stop-point($/, $file) -> $line {
+      my $call := rakuast-call(&maybe-stop,
+        rakuast-call(PseudoStash, :method<new>),   # caller's lexical scope, for the REPL
+        RakuAST::StrLiteral.new($file.Str),
+        RakuAST::IntLiteral.new($line),
+      );
+      $/.make: RakuAST::Statement::Expression.new(
+        expression => RakuAST::Circumfix::Parentheses.new(
+          RakuAST::SemiList.new(
+            RakuAST::Statement::Expression.new(expression => $call),
+            $made,
+          )
+        )
+      );
+    }
+  }
+}
+
+use Slangify Mu, Actions, Mu, LegacyActions;

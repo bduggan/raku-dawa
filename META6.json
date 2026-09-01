@@ -20,7 +20,7 @@
     "Debug"
   ],
   "depends" : [
-    "Terminal::ANSI", "Readline"
+    "Terminal::ANSI", "Readline", "Slangify:ver<0.0.4+>:auth<zef:lizmat>"
   ],
   "test-depends": [
     "Test"
