@@ -1,12 +1,12 @@
 {
-  "auth": "cpan:BDUGGAN",
+  "auth" : "zef:bduggan",
   "authors": [
     "Brian Duggan"
   ],
   "description": "A runtime debugger for Raku programs",
   "name": "Dawa",
   "license": "MIT",
-  "perl": "6.*",
+  "raku": "6.*",
   "provides": {
     "Dawa": "lib/Dawa.rakumod",
     "Dawa::Exception": "lib/Dawa/Exception.rakumod",
@@ -15,9 +15,9 @@
     "Dawa::Debugger::Commands": "lib/Dawa/Debugger/Commands.rakumod"
   },
   "repo-type": "git",
-  "source-url": "https://git.sr.ht/~bduggan/raku-dawa",
+  "source-url" : "git://github.com/bduggan/raku-dawa.git",
   "tags": [
-    "Debug"
+    "debug"
   ],
   "depends" : [
     "Terminal::ANSI", "Readline", "Slangify:ver<0.0.4+>:auth<zef:lizmat>"
