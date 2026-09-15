@@ -81,9 +81,11 @@ sub maybe-stop($context, $file, $line) is hidden-from-backtrace {
   my $tracking = TrackingState.new(:$context);
   %tracking{ $*THREAD.id } = $tracking;
 
-  if $debugger.breakpoint(callframe(1).file,callframe(1).line) {
-    say "encountered breakpoint at " ~ callframe(1).file ~ ' line ' ~ callframe(1).line;
-    stop;
+  if callframe(1).file -> $file {
+    if $debugger.breakpoint($file,callframe(1).line) {
+      say "encountered breakpoint at $file line " ~ callframe(1).line;
+      stop;
+    }
   }
   return unless %debugging{ $*THREAD.id };
   my $stack = Backtrace.new;
