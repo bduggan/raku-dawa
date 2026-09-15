@@ -135,10 +135,12 @@ method help(|args) {
 }
 
 alias w => 'where';
-cmd where => 'show a stack trace and the current location in the code';
+cmd where => '[t] show a stack trace and the current location in the code (with t lines of top context)';
 method where($cmd,:$context!,:stack($b)!,:%tracking, :$file, :$line) {
   my %colors;
   my %leaders;
+
+  my $top-context-lines = $cmd.words[0] // 5;
 
   my $snip = %*snippets{ $file }{ $line };
 
@@ -164,7 +166,7 @@ method where($cmd,:$context!,:stack($b)!,:%tracking, :$file, :$line) {
   $.stdout-lock.protect: {
     put "\n--- current stack --- ";
     put $b.Str;
-    show-file($file, $line, :%colors, :%leaders, :%indicators);
+    show-file($file, $line, :%colors, :%leaders, :%indicators, :$top-context-lines);
   }
 }
 
@@ -189,10 +191,10 @@ method set-breakpoint($file,$line,$kind) {
 }
 
 
-sub show-file(Str $file, Int $line, :%colors, :%leaders, :%indicators) {
+sub show-file(Str $file, Int $line, :%colors, :%leaders, :%indicators, :$top-context-lines = 5) {
   put "-- current location --";
   my $width := $line.chars + 2; # width of line numbers
-  my $top   := 5;               # extra lines to show at the top
+  my $top   := $top-context-lines;
   my $first = min(
      $line - $top,
      |(  %colors{$file}.keys >>->> $top ),
