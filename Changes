@@ -1,5 +1,8 @@
-0.0.10 2026-09-01
+0.0.11 2026-09-16
+  - skip stopping if there is no file in the stacktrace
+  - w option for top context lines
 
+0.0.10 2026-09-01
   - update meta
   - RakuAST support
   - move to github
